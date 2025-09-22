@@ -3,314 +3,294 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MultiDEX Swapper</title>
+  <title>Modern DEX Swapper</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/ethers@6.12.1/dist/ethers.umd.min.js"></script>
   <style>
-    /* 原有样式保持不变 */
     :root {
-      --primary-color: #6c5ce7;
-      --secondary-color: #a29bfe;
-      --text-color: #2d3436;
-      --bg-color: #f5f6fa;
-      --card-bg: #ffffff;
-      --success-color: #00b894;
-      --warning-color: #fdcb6e;
-      --error-color: #d63031;
+      --primary: #2775ff;
+      --primary-hover: #1a5fd9;
+      --bg: #0e0e23;
+      --card-bg: #1a1a3a;
+      --text: #ffffff;
+      --text-secondary: #a0a0c0;
+      --border: #2d2d5a;
+      --success: #00c853;
+      --warning: #ffab00;
+      --error: #ff5252;
     }
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: var(--bg-color);
-      color: var(--text-color);
+    
+    * {
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
     }
-    .container {
-      max-width: 600px;
-      margin: 20px auto;
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       padding: 20px;
-      background-color: var(--card-bg);
-      border-radius: 15px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     }
+    
+    .app-container {
+      width: 100%;
+      max-width: 480px;
+      background: var(--card-bg);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--border);
+    }
+    
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
+      margin-bottom: 24px;
     }
+    
     .logo {
-      font-size: 24px;
-      font-weight: bold;
-      color: var(--primary-color);
-    }
-    .wallet-btn {
-      background-color: var(--primary-color);
-      color: white;
-      border: none;
-      padding: 10px 15px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
+      font-size: 20px;
+      font-weight: 600;
       display: flex;
       align-items: center;
       gap: 8px;
     }
-    .wallet-btn:hover {
-      background-color: #5649c0;
+    
+    .logo-icon {
+      color: var(--primary);
     }
+    
+    .wallet-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    
+    .wallet-btn:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+    
+    .wallet-btn:active {
+      transform: translateY(0);
+    }
+    
     .wallet-info {
       display: flex;
       align-items: center;
       gap: 10px;
-      background-color: #f1f1f1;
+      background: rgba(39, 117, 255, 0.1);
       padding: 8px 12px;
-      border-radius: 8px;
+      border-radius: 12px;
       font-size: 14px;
+      border: 1px solid var(--border);
     }
+    
     .wallet-address {
       font-family: monospace;
+      color: var(--primary);
     }
+    
     .network-selector {
-      margin-top: 10px;
-      padding: 8px;
-      border-radius: 8px;
-      border: 1px solid #ddd;
-      background-color: white;
-    }
-    .swap-container {
-      background-color: #f8f9fa;
+      width: 100%;
+      padding: 12px;
       border-radius: 12px;
-      padding: 20px;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      color: var(--text);
+      margin-bottom: 16px;
+      font-size: 14px;
+    }
+    
+    .swap-container {
       margin-bottom: 20px;
     }
+    
     .swap-header {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 15px;
+      margin-bottom: 16px;
     }
+    
     .swap-title {
-      font-weight: bold;
+      font-weight: 600;
       font-size: 18px;
     }
+    
     .swap-settings {
-      color: var(--primary-color);
+      color: var(--text-secondary);
       cursor: pointer;
+      transition: all 0.2s;
     }
+    
+    .swap-settings:hover {
+      color: var(--primary);
+      transform: rotate(30deg);
+    }
+    
+    .token-card {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
+      transition: all 0.2s;
+    }
+    
+    .token-card:hover {
+      border-color: var(--primary);
+    }
+    
     .token-row {
       display: flex;
       align-items: center;
-      background-color: white;
-      border-radius: 12px;
-      padding: 15px;
-      margin-bottom: 10px;
+      justify-content: space-between;
     }
+    
     .token-select {
       display: flex;
       align-items: center;
       gap: 10px;
       cursor: pointer;
+      padding: 8px 12px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      transition: all 0.2s;
     }
+    
+    .token-select:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
     .token-icon {
-      width: 30px;
-      height: 30px;
+      width: 28px;
+      height: 28px;
       border-radius: 50%;
     }
+    
     .token-symbol {
-      font-weight: bold;
+      font-weight: 600;
     }
+    
+    .token-chevron {
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+    
     .token-input {
       flex: 1;
       text-align: right;
       border: none;
-      background: none;
-      font-size: 24px;
-      font-weight: bold;
-      color: var(--text-color);
+      background: transparent;
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--text);
+      padding: 8px;
+      max-width: 60%;
     }
+    
     .token-input:focus {
       outline: none;
     }
+    
     .token-balance {
-      font-size: 12px;
-      color: #7f8c8d;
+      font-size: 14px;
+      color: var(--text-secondary);
       text-align: right;
-      margin-top: 5px;
+      margin-top: 8px;
     }
+    
     .swap-arrow {
       display: flex;
       justify-content: center;
-      margin: 10px 0;
+      margin: 8px 0;
+      position: relative;
     }
+    
     .swap-arrow-btn {
-      background-color: white;
-      border: none;
-      width: 40px;
-      height: 40px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      z-index: 2;
+      transition: all 0.2s;
     }
+    
     .swap-arrow-btn:hover {
-      background-color: #f1f1f1;
+      border-color: var(--primary);
+      transform: rotate(180deg);
     }
-    .swap-btn {
+    
+    .swap-arrow-line {
+      position: absolute;
+      height: 1px;
       width: 100%;
-      padding: 15px;
-      border-radius: 12px;
-      border: none;
-      background-color: var(--primary-color);
-      color: white;
-      font-weight: bold;
-      font-size: 16px;
-      cursor: pointer;
-      margin-top: 10px;
+      background: var(--border);
+      top: 50%;
+      z-index: 1;
     }
-    .swap-btn:disabled {
-      background-color: #b2b2b2;
-      cursor: not-allowed;
-    }
-    .swap-btn:hover:not(:disabled) {
-      background-color: #5649c0;
-    }
+    
     .price-info {
       display: flex;
       justify-content: space-between;
-      margin-top: 15px;
+      margin: 20px 0;
       font-size: 14px;
-      color: #7f8c8d;
+      color: var(--text-secondary);
     }
+    
     .price-value {
-      color: var(--text-color);
-      font-weight: bold;
+      color: var(--text);
+      font-weight: 500;
     }
-    .settings-panel {
-      background-color: white;
+    
+    .swap-btn {
+      width: 100%;
+      padding: 16px;
       border-radius: 12px;
-      padding: 15px;
-      margin-top: 15px;
-      display: none;
-    }
-    .settings-title {
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-    .settings-row {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 10px;
-    }
-    .settings-label {
-      color: #7f8c8d;
-    }
-    .settings-input {
-      width: 80px;
-      padding: 5px;
-      border-radius: 5px;
-      border: 1px solid #ddd;
-      text-align: right;
-    }
-    .dex-selector {
-      margin-top: 10px;
-    }
-    .dex-option {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 5px;
-    }
-    .dex-checkbox {
-      accent-color: var(--primary-color);
-    }
-    .token-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-      display: none;
-    }
-    .token-modal-content {
-      background-color: white;
-      width: 90%;
-      max-width: 400px;
-      border-radius: 15px;
-      padding: 20px;
-      max-height: 80vh;
-      overflow-y: auto;
-    }
-    .token-modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 15px;
-    }
-    .token-modal-title {
-      font-weight: bold;
-      font-size: 18px;
-    }
-    .token-modal-close {
-      background: none;
       border: none;
-      font-size: 20px;
-      cursor: pointer;
-    }
-    .token-search {
-      width: 100%;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #ddd;
-      margin-bottom: 15px;
-    }
-    .token-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .token-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    .token-item:hover {
-      background-color: #f1f1f1;
-    }
-    .custom-token {
-      margin-top: 15px;
-      padding-top: 15px;
-      border-top: 1px solid #eee;
-    }
-    .custom-token-title {
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-    .custom-token-input {
-      width: 100%;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #ddd;
-      margin-bottom: 10px;
-    }
-    .custom-token-btn {
-      width: 100%;
-      padding: 10px;
-      border-radius: 8px;
-      background-color: var(--primary-color);
+      background: var(--primary);
       color: white;
-      border: none;
+      font-weight: 600;
+      font-size: 16px;
       cursor: pointer;
+      margin-top: 8px;
+      transition: all 0.2s;
     }
+    
+    .swap-btn:disabled {
+      background: var(--border);
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+    
+    .swap-btn:hover:not(:disabled) {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+    
+    .swap-btn:active:not(:disabled) {
+      transform: translateY(0);
+    }
+    
     .loading {
       display: inline-block;
       width: 20px;
@@ -320,27 +300,233 @@
       border-top-color: white;
       animation: spin 1s ease-in-out infinite;
     }
+    
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
-    .error-message {
-      color: var(--error-color);
+    
+    .message {
       font-size: 14px;
-      margin-top: 10px;
+      margin-top: 16px;
       text-align: center;
+      padding: 12px;
+      border-radius: 8px;
     }
+    
+    .error-message {
+      color: var(--error);
+      background: rgba(255, 82, 82, 0.1);
+      border: 1px solid var(--error);
+    }
+    
     .success-message {
-      color: var(--success-color);
+      color: var(--success);
+      background: rgba(0, 200, 83, 0.1);
+      border: 1px solid var(--success);
+    }
+    
+    .settings-panel {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 16px;
+      margin-top: 16px;
+      border: 1px solid var(--border);
+      display: none;
+    }
+    
+    .settings-title {
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--text-secondary);
+    }
+    
+    .settings-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    
+    .settings-label {
+      color: var(--text-secondary);
       font-size: 14px;
-      margin-top: 10px;
-      text-align: center;
+    }
+    
+    .settings-input {
+      width: 80px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      text-align: right;
+    }
+    
+    .token-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s;
+    }
+    
+    .token-modal.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+    
+    .token-modal-content {
+      background-color: var(--card-bg);
+      width: 90%;
+      max-width: 400px;
+      border-radius: 20px;
+      padding: 20px;
+      max-height: 80vh;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      transform: translateY(20px);
+      transition: all 0.3s;
+    }
+    
+    .token-modal.show .token-modal-content {
+      transform: translateY(0);
+    }
+    
+    .token-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    
+    .token-modal-title {
+      font-weight: 600;
+      font-size: 18px;
+    }
+    
+    .token-modal-close {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 24px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .token-modal-close:hover {
+      color: var(--text);
+    }
+    
+    .token-search {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      margin-bottom: 16px;
+      font-size: 14px;
+    }
+    
+    .token-search:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    
+    .token-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .token-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .token-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+    
+    .token-item-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+    }
+    
+    .token-item-info {
+      flex: 1;
+    }
+    
+    .token-item-symbol {
+      font-weight: 600;
+    }
+    
+    .token-item-name {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    
+    .custom-token {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+    
+    .custom-token-title {
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--text-secondary);
+    }
+    
+    .custom-token-input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+    
+    .custom-token-btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .custom-token-btn:hover {
+      background: var(--primary-hover);
     }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="app-container">
     <div class="header">
-      <div class="logo">MultiDEX Swapper</div>
+      <div class="logo">
+        <i class="fas fa-exchange-alt logo-icon"></i>
+        <span>ModernSwap</span>
+      </div>
       <button id="connectWalletBtn" class="wallet-btn">
         <i class="fas fa-wallet"></i>
         <span>Connect Wallet</span>
@@ -368,34 +554,39 @@
         </div>
       </div>
 
-      <div class="token-row">
-        <div class="token-select" id="fromTokenSelect">
-          <img id="fromTokenIcon" class="token-icon" src="https://cryptologos.cc/logos/ethereum-eth-logo.png" alt="ETH">
-          <span id="fromTokenSymbol" class="token-symbol">ETH</span>
-          <i class="fas fa-chevron-down"></i>
+      <div class="token-card">
+        <div class="token-row">
+          <div class="token-select" id="fromTokenSelect">
+            <img id="fromTokenIcon" class="token-icon" src="https://cryptologos.cc/logos/ethereum-eth-logo.png" alt="ETH">
+            <span id="fromTokenSymbol" class="token-symbol">ETH</span>
+            <i class="fas fa-chevron-down token-chevron"></i>
+          </div>
+          <input type="number" id="fromAmount" class="token-input" placeholder="0.0" min="0">
         </div>
-        <input type="number" id="fromAmount" class="token-input" placeholder="0.0" min="0">
+        <div class="token-balance" id="fromTokenBalance">Balance: 0</div>
       </div>
-      <div class="token-balance" id="fromTokenBalance">Balance: 0</div>
 
       <div class="swap-arrow">
+        <div class="swap-arrow-line"></div>
         <button class="swap-arrow-btn" id="swapDirectionBtn">
           <i class="fas fa-arrow-down"></i>
         </button>
       </div>
 
-      <div class="token-row">
-        <div class="token-select" id="toTokenSelect">
-          <img id="toTokenIcon" class="token-icon" src="https://cryptologos.cc/logos/usd-coin-usdc-logo.png" alt="USDC">
-          <span id="toTokenSymbol" class="token-symbol">USDC</span>
-          <i class="fas fa-chevron-down"></i>
+      <div class="token-card">
+        <div class="token-row">
+          <div class="token-select" id="toTokenSelect">
+            <img id="toTokenIcon" class="token-icon" src="https://cryptologos.cc/logos/usd-coin-usdc-logo.png" alt="USDC">
+            <span id="toTokenSymbol" class="token-symbol">USDC</span>
+            <i class="fas fa-chevron-down token-chevron"></i>
+          </div>
+          <input type="number" id="toAmount" class="token-input" placeholder="0.0" min="0" readonly>
         </div>
-        <input type="number" id="toAmount" class="token-input" placeholder="0.0" min="0" readonly>
+        <div class="token-balance" id="toTokenBalance">Balance: 0</div>
       </div>
-      <div class="token-balance" id="toTokenBalance">Balance: 0</div>
 
       <div class="price-info">
-        <span>Price</span>
+        <span>Exchange Rate</span>
         <span id="exchangeRate" class="price-value">1 ETH = 0 USDC</span>
       </div>
 
@@ -403,8 +594,8 @@
         <span id="swapBtnText">Swap</span>
       </button>
 
-      <div id="errorMessage" class="error-message"></div>
-      <div id="successMessage" class="success-message"></div>
+      <div id="errorMessage" class="message error-message"></div>
+      <div id="successMessage" class="message success-message"></div>
 
       <div id="settingsPanel" class="settings-panel">
         <div class="settings-title">Transaction Settings</div>
@@ -415,19 +606,6 @@
         <div class="settings-row">
           <span class="settings-label">Transaction deadline</span>
           <input type="number" id="deadlineInput" class="settings-input" value="20"> mins
-        </div>
-        <div class="settings-title dex-selector">DEX Aggregators</div>
-        <div class="dex-option">
-          <input type="checkbox" id="dex1inch" class="dex-checkbox" checked>
-          <label for="dex1inch">1inch</label>
-        </div>
-        <div class="dex-option">
-          <input type="checkbox" id="dex0x" class="dex-checkbox" checked>
-          <label for="dex0x">0x</label>
-        </div>
-        <div class="dex-option">
-          <input type="checkbox" id="dexKyber" class="dex-checkbox" checked>
-          <label for="dexKyber">KyberSwap</label>
         </div>
       </div>
     </div>
@@ -453,7 +631,7 @@
   </div>
 
   <script>
-    // 1. 初始化变量
+    // 初始化变量
     let provider;
     let signer;
     let walletAddress = '';
@@ -461,7 +639,7 @@
     let isSwapping = false;
     let selectedTokenSide = 'from'; // 'from' or 'to'
     
-    // 2. 常用代币列表（ETH主网）
+    // 常用代币列表（ETH主网）
     const tokenList = [
       {
         address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', // ETH 特殊地址
@@ -500,11 +678,11 @@
       }
     ];
     
-    // 3. 当前选择的代币
+    // 当前选择的代币
     let fromToken = tokenList[0]; // ETH
     let toToken = tokenList[1];   // USDC
     
-    // 4. DOM 元素
+    // DOM 元素
     const connectWalletBtn = document.getElementById('connectWalletBtn');
     const walletInfo = document.getElementById('walletInfo');
     const walletAddressEl = document.getElementById('walletAddress');
@@ -537,7 +715,7 @@
     const errorMessage = document.getElementById('errorMessage');
     const successMessage = document.getElementById('successMessage');
     
-    // 5. 初始化事件监听器
+    // 初始化事件监听器
     function initEventListeners() {
       // 连接钱包按钮
       connectWalletBtn.addEventListener('click', connectWallet);
@@ -578,7 +756,7 @@
       swapBtn.addEventListener('click', executeSwap);
     }
     
-    // 6. 连接钱包函数
+    // 连接钱包函数
     async function connectWallet() {
       try {
         // 检查是否安装了 MetaMask
@@ -636,7 +814,7 @@
       }
     }
     
-    // 7. 断开钱包连接
+    // 断开钱包连接
     function disconnectWallet() {
       walletAddress = '';
       provider = null;
@@ -657,7 +835,7 @@
       swapBtn.disabled = true;
     }
     
-    // 8. 更新钱包信息
+    // 更新钱包信息
     async function updateWalletInfo() {
       if (!provider || !walletAddress) return;
       
@@ -675,7 +853,7 @@
       }
     }
     
-    // 9. 更新代币余额
+    // 更新代币余额
     async function updateTokenBalances() {
       if (!provider || !walletAddress) return;
       
@@ -718,7 +896,7 @@
       }
     }
     
-    // 10. 处理网络切换
+    // 处理网络切换
     async function handleNetworkChange() {
       const newChainId = parseInt(networkSelector.value);
       
@@ -738,21 +916,21 @@
       }
     }
     
-    // 11. 显示代币选择模态框
+    // 显示代币选择模态框
     function showTokenModal() {
       // 填充代币列表
       populateTokenList();
       
       // 显示模态框
-      tokenModal.style.display = 'flex';
+      tokenModal.classList.add('show');
     }
     
-    // 12. 隐藏代币选择模态框
+    // 隐藏代币选择模态框
     function hideTokenModal() {
-      tokenModal.style.display = 'none';
+      tokenModal.classList.remove('show');
     }
     
-    // 13. 填充代币列表
+    // 填充代币列表
     function populateTokenList() {
       tokenListEl.innerHTML = '';
       
@@ -760,10 +938,10 @@
         const tokenItem = document.createElement('div');
         tokenItem.className = 'token-item';
         tokenItem.innerHTML = `
-          <img src="${token.logoURI}" alt="${token.symbol}" width="24" height="24">
-          <div>
-            <div>${token.symbol}</div>
-            <div style="font-size: 12px; color: #7f8c8d;">${token.name}</div>
+          <img src="${token.logoURI}" alt="${token.symbol}" class="token-item-icon">
+          <div class="token-item-info">
+            <div class="token-item-symbol">${token.symbol}</div>
+            <div class="token-item-name">${token.name}</div>
           </div>
         `;
         
@@ -776,7 +954,7 @@
       });
     }
     
-    // 14. 过滤代币列表
+    // 过滤代币列表
     function filterTokenList() {
       const searchTerm = tokenSearch.value.toLowerCase();
       const tokenItems = tokenListEl.querySelectorAll('.token-item');
@@ -791,7 +969,7 @@
       });
     }
     
-    // 15. 选择代币
+    // 选择代币
     function selectToken(token) {
       if (selectedTokenSide === 'from') {
         fromToken = token;
@@ -812,7 +990,7 @@
       }
     }
     
-    // 16. 添加自定义代币
+    // 添加自定义代币
     function addCustomToken() {
       const address = customTokenAddress.value.trim();
       
@@ -848,7 +1026,7 @@
       hideTokenModal();
     }
     
-    // 17. 交换代币方向
+    // 交换代币方向
     function swapTokens() {
       // 交换代币
       const tempToken = fromToken;
@@ -875,7 +1053,7 @@
       }
     }
     
-    // 18. 更新报价（调用1inch API）
+    // 更新报价（调用1inch API）
     async function updateQuote() {
       if (!fromAmount.value || parseFloat(fromAmount.value) <= 0) {
         toAmount.value = '';
@@ -960,7 +1138,7 @@
       }
     }
     
-    // 19. 执行兑换
+    // 执行兑换
     async function executeSwap() {
       if (isSwapping) return;
       isSwapping = true;
@@ -1022,11 +1200,11 @@
           到: swapData。tx。到，
           data: swapData。tx。data，
           value: swapData.tx.value,
-          gasLimit: swapData。tx。gas，
+          gasLimit: swapData.tx.gas,
         });
         
         // 显示成功消息
-        showSuccessMessage(`Transaction sent! TX Hash: ${tx.hash}`);
+        showSuccessMessage(`Transaction sent! TX Hash: ${tx。hash}`);
         
         // 等待交易确认
         const receipt = await tx.wait();
@@ -1036,37 +1214,37 @@
         updateTokenBalances();
       } catch (error) {
         console。error('Error executing swap:'， error);
-        showErrorMessage(`Swap failed: ${error.message}`);
+        showErrorMessage(`Swap failed: ${error。message}`);
       } finally {
         // 重置按钮状态
-        swapBtn。disabled = false;
+        swapBtn.disabled = false;
         swapBtnText。textContent = 'Swap';
         isSwapping = false;
       }
     }
     
-    // 20. 切换设置面板
+    // 切换设置面板
     function toggleSettingsPanel() {
       if (settingsPanel.style.display === 'block') {
-        settingsPanel.style.display = 'none';
+        settingsPanel。style。display = 'none';
       } else {
         settingsPanel。style。display = 'block';
       }
     }
     
-    // 21. 显示错误消息
+    // 显示错误消息
     function showErrorMessage(message) {
       errorMessage。textContent = message;
       successMessage。textContent = '';
     }
     
-    // 22. 显示成功消息
+    // 显示成功消息
     function showSuccessMessage(message) {
       successMessage。textContent = message;
       errorMessage。textContent = '';
     }
     
-    // 23. 防抖函数
+    // 防抖函数
     function debounce(func， timeout = 300) {
       let timer;
       return (...args) => {
@@ -1075,18 +1253,18 @@
       };
     }
     
-    // 24. 初始化应用
+    // 初始化应用
     function initApp() {
       initEventListeners();
       
       // 检查是否已经连接了钱包
-      if (window.ethereum && window.ethereum.selectedAddress) {
+      if (window。ethereum && window。ethereum.selectedAddress) {
         connectWallet();
       }
     }
     
     // 启动应用
-    window。addEventListener('DOMContentLoaded'， initApp);
+    window。addEventListener('DOMContentLoaded', initApp);
   </script>
 </body>
 </html>
