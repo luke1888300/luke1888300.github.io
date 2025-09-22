@@ -1,1270 +1,1877 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Modern DEX Swapper</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/ethers@6.12.1/dist/ethers.umd.min.js"></script>
-  <style>
-    :root {
-      --primary: #2775ff;
-      --primary-hover: #1a5fd9;
-      --bg: #0e0e23;
-      --card-bg: #1a1a3a;
-      --text: #ffffff;
-      --text-secondary: #a0a0c0;
-      --border: #2d2d5a;
-      --success: #00c853;
-      --warning: #ffab00;
-      --error: #ff5252;
-    }
-    
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
-    
-    .app-container {
-      width: 100%;
-      max-width: 480px;
-      background: var(--card-bg);
-      border-radius: 24px;
-      padding: 24px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-      border: 1px solid var(--border);
-    }
-    
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-    }
-    
-    .logo {
-      font-size: 20px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .logo-icon {
-      color: var(--primary);
-    }
-    
-    .wallet-btn {
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 10px 16px;
-      border-radius: 12px;
-      cursor: pointer;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.2s;
-    }
-    
-    .wallet-btn:hover {
-      background: var(--primary-hover);
-      transform: translateY(-1px);
-    }
-    
-    .wallet-btn:active {
-      transform: translateY(0);
-    }
-    
-    .wallet-info {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: rgba(39, 117, 255, 0.1);
-      padding: 8px 12px;
-      border-radius: 12px;
-      font-size: 14px;
-      border: 1px solid var(--border);
-    }
-    
-    .wallet-address {
-      font-family: monospace;
-      color: var(--primary);
-    }
-    
-    .network-selector {
-      width: 100%;
-      padding: 12px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: var(--card-bg);
-      color: var(--text);
-      margin-bottom: 16px;
-      font-size: 14px;
-    }
-    
-    .swap-container {
-      margin-bottom: 20px;
-    }
-    
-    .swap-header {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 16px;
-    }
-    
-    .swap-title {
-      font-weight: 600;
-      font-size: 18px;
-    }
-    
-    .swap-settings {
-      color: var(--text-secondary);
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    
-    .swap-settings:hover {
-      color: var(--primary);
-      transform: rotate(30deg);
-    }
-    
-    .token-card {
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 12px;
-      border: 1px solid var(--border);
-      transition: all 0.2s;
-    }
-    
-    .token-card:hover {
-      border-color: var(--primary);
-    }
-    
-    .token-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    
-    .token-select {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      cursor: pointer;
-      padding: 8px 12px;
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.05);
-      transition: all 0.2s;
-    }
-    
-    .token-select:hover {
-      background: rgba(255, 255, 255, 0.1);
-    }
-    
-    .token-icon {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-    }
-    
-    .token-symbol {
-      font-weight: 600;
-    }
-    
-    .token-chevron {
-      color: var(--text-secondary);
-      font-size: 12px;
-    }
-    
-    .token-input {
-      flex: 1;
-      text-align: right;
-      border: none;
-      background: transparent;
-      font-size: 28px;
-      font-weight: 600;
-      color: var(--text);
-      padding: 8px;
-      max-width: 60%;
-    }
-    
-    .token-input:focus {
-      outline: none;
-    }
-    
-    .token-balance {
-      font-size: 14px;
-      color: var(--text-secondary);
-      text-align: right;
-      margin-top: 8px;
-    }
-    
-    .swap-arrow {
-      display: flex;
-      justify-content: center;
-      margin: 8px 0;
-      position: relative;
-    }
-    
-    .swap-arrow-btn {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      z-index: 2;
-      transition: all 0.2s;
-    }
-    
-    .swap-arrow-btn:hover {
-      border-color: var(--primary);
-      transform: rotate(180deg);
-    }
-    
-    .swap-arrow-line {
-      position: absolute;
-      height: 1px;
-      width: 100%;
-      background: var(--border);
-      top: 50%;
-      z-index: 1;
-    }
-    
-    .price-info {
-      display: flex;
-      justify-content: space-between;
-      margin: 20px 0;
-      font-size: 14px;
-      color: var(--text-secondary);
-    }
-    
-    .price-value {
-      color: var(--text);
-      font-weight: 500;
-    }
-    
-    .swap-btn {
-      width: 100%;
-      padding: 16px;
-      border-radius: 12px;
-      border: none;
-      background: var(--primary);
-      color: white;
-      font-weight: 600;
-      font-size: 16px;
-      cursor: pointer;
-      margin-top: 8px;
-      transition: all 0.2s;
-    }
-    
-    .swap-btn:disabled {
-      background: var(--border);
-      cursor: not-allowed;
-      opacity: 0.7;
-    }
-    
-    .swap-btn:hover:not(:disabled) {
-      background: var(--primary-hover);
-      transform: translateY(-1px);
-    }
-    
-    .swap-btn:active:not(:disabled) {
-      transform: translateY(0);
-    }
-    
-    .loading {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(255,255,255,.3);
-      border-radius: 50%;
-      border-top-color: white;
-      animation: spin 1s ease-in-out infinite;
-    }
-    
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    
-    .message {
-      font-size: 14px;
-      margin-top: 16px;
-      text-align: center;
-      padding: 12px;
-      border-radius: 8px;
-    }
-    
-    .error-message {
-      color: var(--error);
-      background: rgba(255, 82, 82, 0.1);
-      border: 1px solid var(--error);
-    }
-    
-    .success-message {
-      color: var(--success);
-      background: rgba(0, 200, 83, 0.1);
-      border: 1px solid var(--success);
-    }
-    
-    .settings-panel {
-      background: var(--card-bg);
-      border-radius: 16px;
-      padding: 16px;
-      margin-top: 16px;
-      border: 1px solid var(--border);
-      display: none;
-    }
-    
-    .settings-title {
-      font-weight: 600;
-      margin-bottom: 16px;
-      color: var(--text-secondary);
-    }
-    
-    .settings-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-    
-    .settings-label {
-      color: var(--text-secondary);
-      font-size: 14px;
-    }
-    
-    .settings-input {
-      width: 80px;
-      padding: 8px 12px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: var(--bg);
-      color: var(--text);
-      text-align: right;
-    }
-    
-    .token-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.7);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-      opacity: 0;
-      pointer-events: none;
-      transition: all 0.3s;
-    }
-    
-    .token-modal.show {
-      opacity: 1;
-      pointer-events: all;
-    }
-    
-    .token-modal-content {
-      background-color: var(--card-bg);
-      width: 90%;
-      max-width: 400px;
-      border-radius: 20px;
-      padding: 20px;
-      max-height: 80vh;
-      overflow-y: auto;
-      border: 1px solid var(--border);
-      transform: translateY(20px);
-      transition: all 0.3s;
-    }
-    
-    .token-modal.show .token-modal-content {
-      transform: translateY(0);
-    }
-    
-    .token-modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-    
-    .token-modal-title {
-      font-weight: 600;
-      font-size: 18px;
-    }
-    
-    .token-modal-close {
-      background: none;
-      border: none;
-      color: var(--text-secondary);
-      font-size: 24px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    
-    .token-modal-close:hover {
-      color: var(--text);
-    }
-    
-    .token-search {
-      width: 100%;
-      padding: 12px 16px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: var(--bg);
-      color: var(--text);
-      margin-bottom: 16px;
-      font-size: 14px;
-    }
-    
-    .token-search:focus {
-      outline: none;
-      border-color: var(--primary);
-    }
-    
-    .token-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    
-    .token-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    
-    .token-item:hover {
-      background: rgba(255, 255, 255, 0.05);
-    }
-    
-    .token-item-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-    }
-    
-    .token-item-info {
-      flex: 1;
-    }
-    
-    .token-item-symbol {
-      font-weight: 600;
-    }
-    
-    .token-item-name {
-      font-size: 12px;
-      color: var(--text-secondary);
-    }
-    
-    .custom-token {
-      margin-top: 16px;
-      padding-top: 16px;
-      border-top: 1px solid var(--border);
-    }
-    
-    .custom-token-title {
-      font-weight: 600;
-      margin-bottom: 12px;
-      color: var(--text-secondary);
-    }
-    
-    .custom-token-input {
-      width: 100%;
-      padding: 12px 16px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: var(--bg);
-      color: var(--text);
-      margin-bottom: 12px;
-      font-size: 14px;
-    }
-    
-    .custom-token-btn {
-      width: 100%;
-      padding: 12px;
-      border-radius: 12px;
-      background: var(--primary);
-      color: white;
-      border: none;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    
-    .custom-token-btn:hover {
-      background: var(--primary-hover);
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeFi Swap Aggregator - Live</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #00c6ff, #0072ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .logo-icon {
+            font-size: 24px;
+            color: #0072ff;
+        }
+        
+        .wallet-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .wallet-btn {
+            background: linear-gradient(45deg, #00c6ff, #0072ff);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .wallet-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 114, 255, 0.4);
+        }
+        
+        .wallet-connected {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 198, 255, 0.15);
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+        }
+        
+        .wallet-address {
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .refresh-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .refresh-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #00c6ff;
+            padding: 8px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+        }
+        
+        .refresh-btn:hover {
+            background: rgba(0, 198, 255, 0.2);
+        }
+        
+        .refresh-status {
+            font-size: 0.8rem;
+            color: #00c6ff;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .live-indicator {
+            width: 8px;
+            height: 8px;
+            background-color: #00ff8c;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+        
+        .chain-selector {
+            margin-bottom: 20px;
+        }
+        
+        .chain-title {
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            color: #aaa;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .chain-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .chain-option {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .chain-option.active {
+            background: rgba(0, 114, 255, 0.15);
+            border-color: #0072ff;
+        }
+        
+        .chain-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+        }
+        
+        .swap-form {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        .input-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        
+        .amount-quick-select {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .amount-btn {
+            padding: 4px 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            color: #aaa;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .amount-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .amount-btn.active {
+            background: rgba(0, 114, 255, 0.15);
+            border-color: #0072ff;
+            color: #00c6ff;
+        }
+        
+        .input-field {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 12px 15px;
+        }
+        
+        .input-field input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 1.2rem;
+            outline: none;
+        }
+        
+        .token-select {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 114, 255, 0.15);
+            padding: 8px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            min-width: 120px;
+        }
+        
+        .token-select:hover {
+            background: rgba(0, 114, 255, 0.25);
+        }
+        
+        .token-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .token-modal {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 300px;
+            background: rgba(15, 32, 39, 0.95);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            display: none;
+            margin-top: 5px;
+        }
+        
+        .token-modal.show {
+            display: block;
+        }
+        
+        .token-search {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+        
+        .token-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .token-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .token-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .custom-token {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+        }
+        
+        .custom-token input {
+            width: 100%;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+        
+        .add-token-btn {
+            width: 100%;
+            padding: 8px;
+            background: rgba(0, 114, 255, 0.2);
+            border: none;
+            border-radius: 6px;
+            color: #00c6ff;
+            cursor: pointer;
+        }
+        
+        .reverse-container {
+            display: flex;
+            justify-content: center;
+            margin: 10px 0;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .reverse-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #00c6ff, #0072ff);
+            border: none;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .reverse-btn:hover {
+            transform: rotate(180deg);
+        }
+        
+        .price-info {
+            text-align: center;
+            margin: 15px 0;
+            font-size: 0.9rem;
+            color: #aaa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        
+        .price-display {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .price-value {
+            color: #00c6ff;
+            font-weight: 500;
+            min-width: 180px;
+            text-align: left;
+            transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            letter-spacing: -0.5px;
+        }
+        
+        .price-main {
+            color: #00c6ff;
+        }
+        
+        .price-small {
+            color: #88d3ff;
+            font-size: 0.8rem;
+        }
+        
+        .price-up {
+            color: #00ff8c !important;
+            animation: priceUp 0.5s ease;
+        }
+        
+        .price-down {
+            color: #ff6b6b !important;
+            animation: priceDown 0.5s ease;
+        }
+        
+        @keyframes priceUp {
+            0% { background-color: transparent; }
+            50% { background-color: rgba(0, 255, 140, 0.1); }
+            100% { background-color: transparent; }
+        }
+        
+        @keyframes priceDown {
+            0% { background-color: transparent; }
+            50% { background-color: rgba(255, 107, 107, 0.1); }
+            100% { background-color: transparent; }
+        }
+        
+        .unit-toggle {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .unit-toggle:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .unit-toggle i {
+            margin-left: 5px;
+            font-size: 0.8rem;
+        }
+        
+        .send-to-other {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+        }
+        
+        .send-to-other input[type="checkbox"] {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+            accent-color: #00c6ff;
+        }
+        
+        .send-to-other label {
+            font-size: 0.9rem;
+            color: #aaa;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .recipient-address {
+            margin-top: 10px;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            display: none;
+        }
+        
+        .recipient-address input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        
+        .slippage-selector {
+            margin: 20px 0;
+        }
+        
+        .slippage-title {
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        
+        .slippage-options {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .slippage-option {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid transparent;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            min-width: 50px;
+        }
+        
+        .slippage-option.active {
+            background: rgba(0, 114, 255, 0.15);
+            border-color: #0072ff;
+        }
+        
+        .slippage-custom {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid transparent;
+            border-radius: 10px;
+            padding: 0 8px;
+            width: 90px;
+        }
+        
+        .slippage-custom.active {
+            border-color: #0072ff;
+        }
+        
+        .slippage-custom input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #fff;
+            padding: 8px 0;
+            outline: none;
+            text-align: center;
+            width: 40px;
+            font-size: 0.9rem;
+        }
+        
+        .slippage-custom span {
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+        
+        .dex-selector {
+            margin: 20px 0;
+        }
+        
+        .dex-title {
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            color: #aaa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .dex-config-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: none;
+            color: #00c6ff;
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        
+        .dex-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .dex-item {
+            flex: 1;
+            min-width: 120px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid transparent;
+            border-radius: 12px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .dex-item.active {
+            background: rgba(0, 114, 255, 0.15);
+            border-color: #0072ff;
+        }
+        
+        .dex-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            background: linear-gradient(45deg, #00c6ff, #0072ff);
+        }
+        
+        .swap-btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            background: linear-gradient(45deg, #00c6ff, #0072ff);
+            color: white;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .swap-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 114, 255, 0.4);
+        }
+        
+        .swap-btn:disabled {
+            background: rgba(255, 255, 255, 0.1);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .network-status {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 0.8rem;
+            color: #00c6ff;
+        }
+        
+        .advanced-toggle {
+            text-align: center;
+            margin-top: 20px;
+            color: #00c6ff;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .advanced-settings {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            display: none;
+        }
+        
+        .advanced-settings.show {
+            display: block;
+        }
+        
+        .setting-item {
+            margin-bottom: 15px;
+        }
+        
+        .setting-item label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        
+        .setting-item input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 10px;
+            color: white;
+        }
+        
+        .api-config-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            display: none;
+        }
+        
+        .api-config-modal.show {
+            display: flex;
+        }
+        
+        .api-config-content {
+            background: rgba(15, 32, 39, 0.95);
+            border-radius: 16px;
+            padding: 20px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .api-config-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .api-config-title {
+            font-size: 1.1rem;
+            color: #00c6ff;
+        }
+        
+        .close-api-config {
+            background: none;
+            border: none;
+            color: #aaa;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: rgba(15, 32, 39, 0.95);
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 3000;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            border-left: 4px solid #00ff8c;
+        }
+        
+        .notification.error {
+            border-left: 4px solid #ff6b6b;
+        }
+        
+        .notification.info {
+            border-left: 4px solid #00c6ff;
+        }
+        
+        .notification-icon {
+            font-size: 1.2rem;
+        }
+        
+        .notification.success .notification-icon {
+            color: #00ff8c;
+        }
+        
+        .notification.error .notification-icon {
+            color: #ff6b6b;
+        }
+        
+        .notification.info .notification-icon {
+            color: #00c6ff;
+        }
+        
+        .notification-content {
+            flex: 1;
+        }
+        
+        .notification-title {
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+        
+        .notification-message {
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        
+        .close-notification {
+            background: none;
+            border: none;
+            color: #aaa;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+        
+        .transaction-status {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            display: none;
+        }
+        
+        .transaction-status.show {
+            display: block;
+        }
+        
+        .transaction-progress {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        
+        .transaction-progress-bar {
+            height: 100%;
+            background: linear-gradient(45deg, #00c6ff, #0072ff);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .transaction-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+        
+        .transaction-step {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .transaction-step.active {
+            color: #00c6ff;
+        }
+        
+        .transaction-step.completed {
+            color: #00ff8c;
+        }
+        
+        .transaction-hash {
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: #aaa;
+            word-break: break-all;
+        }
+        
+        .transaction-hash a {
+            color: #00c6ff;
+            text-decoration: none;
+        }
+        
+        @media (max-width: 500px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .logo h1 {
+                font-size: 1.5rem;
+            }
+            
+            .dex-item {
+                min-width: 100px;
+            }
+            
+            .slippage-options {
+                flex-wrap: wrap;
+            }
+            
+            .wallet-connected {
+                padding: 6px 10px;
+            }
+            
+            .wallet-address {
+                max-width: 80px;
+            }
+            
+            .price-info {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .price-display {
+                justify-content: center;
+            }
+            
+            .amount-quick-select {
+                gap: 6px;
+            }
+            
+            .amount-btn {
+                padding: 3px 6px;
+                font-size: 0.7rem;
+            }
+            
+            .refresh-status {
+                font-size: 0.7rem;
+            }
+            
+            .chain-options {
+                gap: 8px;
+            }
+            
+            .chain-option {
+                padding: 6px 10px;
+                font-size: 0.8rem;
+            }
+            
+            .token-modal {
+                width: 280px;
+                right: -20px;
+            }
+            
+            .price-value {
+                min-width: 160px;
+                font-size: 0.8rem;
+            }
+            
+            .api-config-content {
+                width: 95%;
+                padding: 15px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="app-container">
-    <div class="header">
-      <div class="logo">
-        <i class="fas fa-exchange-alt logo-icon"></i>
-        <span>ModernSwap</span>
-      </div>
-      <button id="connectWalletBtn" class="wallet-btn">
-        <i class="fas fa-wallet"></i>
-        <span>Connect Wallet</span>
-      </button>
-      <div id="walletInfo" class="wallet-info" style="display: none;">
-        <i class="fas fa-wallet"></i>
-        <span id="walletAddress" class="wallet-address"></span>
-        <span id="walletBalance"></span>
-      </div>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon"><i class="fas fa-exchange-alt"></i></div>
+                <h1>MultiDEX Swapper</h1>
+            </div>
+            <div class="wallet-section" id="walletSection">
+                <button class="wallet-btn" id="connectWalletBtn">
+                    <i class="fas fa-wallet"></i>
+                    Connect Wallet
+                </button>
+                <div class="wallet-connected" id="walletConnected" style="display: none;">
+                    <i class="fas fa-check-circle" style="color: #00c6ff;"></i>
+                    <span class="wallet-address" id="walletAddress">0x1234...5678</span>
+                </div>
+                <div class="refresh-section">
+                    <div class="refresh-status">
+                        <span class="live-indicator"></span>
+                        <span>LIVE</span>
+                    </div>
+                    <button class="refresh-btn" id="refreshBtn">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chain-selector">
+            <div class="chain-title">
+                <i class="fas fa-link"></i>
+                <span>Select Chain</span>
+            </div>
+            <div class="chain-options">
+                <div class="chain-option active" data-chain="ethereum">
+                    <div class="chain-icon" style="background: #627eea;"></div>
+                    <span>Ethereum</span>
+                </div>
+                <div class="chain-option" data-chain="bsc">
+                    <div class="chain-icon" style="background: #f0b90b;"></div>
+                    <span>BSC</span>
+                </div>
+                <div class="chain-option" data-chain="polygon">
+                    <div class="chain-icon" style="background: #8247e5;"></div>
+                    <span>Polygon</span>
+                </div>
+                <div class="chain-option" data-chain="avalanche">
+                    <div class="chain-icon" style="background: #e84142;"></div>
+                    <span>Avalanche</span>
+                </div>
+                <div class="chain-option" data-chain="arbitrum">
+                    <div class="chain-icon" style="background: #28a0f0;"></div>
+                    <span>Arbitrum</span>
+                </div>
+                <div class="chain-option" data-chain="optimism">
+                    <div class="chain-icon" style="background: #ff0420;"></div>
+                    <span>Optimism</span>
+                </div>
+                <div class="chain-option" data-chain="solana">
+                    <div class="chain-icon" style="background: linear-gradient(45deg, #9945ff, #14f195);"></div>
+                    <span>Solana</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="swap-form">
+            <div class="input-group">
+                <div class="input-label">
+                    <span>From</span>
+                    <span>Balance: <span id="walletBalance">0.00</span> <span id="fromTokenSymbol">ETH</span></span>
+                </div>
+                <div class="amount-quick-select" id="amountQuickSelect">
+                    <button class="amount-btn" data-percent="25">25%</button>
+                    <button class="amount-btn" data-percent="50">50%</button>
+                    <button class="amount-btn" data-percent="75">75%</button>
+                    <button class="amount-btn" data-percent="100" id="maxBtn">MAX</button>
+                </div>
+                <div class="input-field">
+                    <input type="number" value="0" id="fromAmount">
+                    <div class="token-select token-pork" id="fromTokenSelect">
+                        <div class="token-icon" style="background: #627eea;">E</div>
+                        <span id="fromTokenName">ETH</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="token-modal" id="fromTokenModal">
+                        <input type="text" class="token-search" placeholder="Search token name or contract..." id="fromTokenSearch">
+                        <div class="token-list" id="fromTokenList">
+                            <div class="token-item" data-symbol="ETH" data-name="Ethereum" data-address="0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee">
+                                <div class="token-icon" style="background: #627eea;">E</div>
+                                <span>ETH - Ethereum</span>
+                            </div>
+                            <div class="token-item" data-symbol="USDC" data-name="USD Coin" data-address="0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48">
+                                <div class="token-icon" style="background: #2775ca;">U</div>
+                                <span>USDC - USD Coin</span>
+                            </div>
+                            <div class="token-item" data-symbol="USDT" data-name="Tether" data-address="0xdac17f958d2ee523a2206206994597c13d831ec7">
+                                <div class="token-icon" style="background: #26a17b;">U</div>
+                                <span>USDT - Tether</span>
+                            </div>
+                            <div class="token-item" data-symbol="DAI" data-name="Dai Stablecoin" data-address="0x6b175474e89094c44da98b954eedeac495271d0f">
+                                <div class="token-icon" style="background: #f5ac37;">D</div>
+                                <span>DAI - Dai Stablecoin</span>
+                            </div>
+                            <div class="token-item" data-symbol="WBTC" data-name="Wrapped Bitcoin" data-address="0x2260fac5e5542a773aa44fbcfedf7c193bc2c599">
+                                <div class="token-icon" style="background: #f7931a;">W</div>
+                                <span>WBTC - Wrapped Bitcoin</span>
+                            </div>
+                        </div>
+                        <div class="custom-token">
+                            <input type="text" placeholder="Contract address" id="fromCustomToken">
+                            <button class="add-token-btn" onclick="addCustomToken('from')">Add Custom Token</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="reverse-container">
+                <button class="reverse-btn" id="reverseTokensBtn">
+                    <i class="fas fa-arrow-down-arrow-up"></i>
+                </button>
+            </div>
+            
+            <div class="input-group">
+                <div class="input-label">
+                    <span>To (estimated)</span>
+                </div>
+                <div class="input-field">
+                    <input type="number" value="0" id="toAmount">
+                    <div class="token-select token-eth" id="toTokenSelect">
+                        <div class="token-icon" style="background: #2775ca;">U</div>
+                        <span id="toTokenName">USDC</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="token-modal" id="toTokenModal">
+                        <input type="text" class="token-search" placeholder="Search token name or contract..." id="toTokenSearch">
+                        <div class="token-list" id="toTokenList">
+                            <div class="token-item" data-symbol="ETH" data-name="Ethereum" data-address="0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee">
+                                <div class="token-icon" style="background: #627eea;">E</div>
+                                <span>ETH - Ethereum</span>
+                            </div>
+                            <div class="token-item" data-symbol="USDC" data-name="USD Coin" data-address="0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48">
+                                <div class="token-icon" style="background: #2775ca;">U</div>
+                                <span>USDC - USD Coin</span>
+                            </div>
+                            <div class="token-item" data-symbol="USDT" data-name="Tether" data-address="0xdac17f958d2ee523a2206206994597c13d831ec7">
+                                <div class="token-icon" style="background: #26a17b;">U</div>
+                                <span>USDT - Tether</span>
+                            </div>
+                            <div class="token-item" data-symbol="DAI" data-name="Dai Stablecoin" data-address="0x6b175474e89094c44da98b954eedeac495271d0f">
+                                <div class="token-icon" style="background: #f5ac37;">D</div>
+                                <span>DAI - Dai Stablecoin</span>
+                            </div>
+                            <div class="token-item" data-symbol="WBTC" data-name="Wrapped Bitcoin" data-address="0x2260fac5e5542a773aa44fbcfedf7c193bc2c599">
+                                <div class="token-icon" style="background: #f7931a;">W</div>
+                                <span>WBTC - Wrapped Bitcoin</span>
+                            </div>
+                        </div>
+                        <div class="custom-token">
+                            <input type="text" placeholder="Contract address" id="toCustomToken">
+                            <button class="add-token-btn" onclick="addCustomToken('to')">Add Custom Token</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="price-info">
+                <div class="price-display" id="priceDisplay">
+                    <span>1 <span id="priceFromSymbol">ETH</span> =</span>
+                    <span class="price-value" id="priceValue">
+                        <span class="price-main">0.00</span> USDC
+                    </span>
+                </div>
+                <div class="unit-toggle" id="unitToggle">
+                    Switch <i class="fas fa-exchange-alt"></i>
+                </div>
+            </div>
+            
+            <div class="send-to-other">
+                <input type="checkbox" id="sendToOther">
+                <label for="sendToOther">
+                    <i class="fas fa-paper-plane"></i> Send to another address
+                </label>
+            </div>
+            
+            <div class="recipient-address" id="recipientAddress">
+                <input type="text" placeholder="Enter recipient address (0x...)" id="recipientInput">
+            </div>
+            
+            <div class="slippage-selector">
+                <div class="slippage-title">Slippage Tolerance</div>
+                <div class="slippage-options">
+                    <div class="slippage-option active" data-value="1">1%</div>
+                    <div class="slippage-option" data-value="0.5">0.5%</div>
+                    <div class="slippage-option" data-value="3">3%</div>
+                    <div class="slippage-custom" id="customSlippage">
+                        <input type="number" id="customSlippageInput" value="1">
+                        <span>%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="transaction-status" id="transactionStatus">
+            <div class="transaction-progress">
+                <div class="transaction-progress-bar" id="transactionProgress"></div>
+            </div>
+            <div class="transaction-steps">
+                <div class="transaction-step completed" id="step1">
+                    <div>Approval</div>
+                </div>
+                <div class="transaction-step active" id="step2">
+                    <div>Swap</div>
+                </div>
+                <div class="transaction-step" id="step3">
+                    <div>Complete</div>
+                </div>
+            </div>
+            <div class="transaction-hash" id="transactionHash">
+                Transaction: <a href="#" target="_blank" id="txLink">0x1234...5678</a>
+            </div>
+        </div>
+        
+        <div class="dex-selector">
+            <div class="dex-title">
+                <span>Select DEX</span>
+                <button class="dex-config-btn" id="dexConfigBtn">
+                    <i class="fas fa-cog"></i> Configure APIs
+                </button>
+            </div>
+            <div class="dex-list">
+                <div class="dex-item active" data-dex="1inch">
+                    <div class="dex-icon"></div>
+                    <span>1inch</span>
+                </div>
+                <div class="dex-item" data-dex="uniswap">
+                    <div class="dex-icon"></div>
+                    <span>Uniswap</span>
+                </div>
+                <div class="dex-item" data-dex="sushiswap">
+                    <div class="dex-icon"></div>
+                    <span>SushiSwap</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="network-status" id="networkStatus">
+            <i class="fas fa-network-wired"></i> Connected to Ethereum Network
+        </div>
+        
+        <button class="swap-btn" id="swapBtn" disabled>Connect Wallet to Swap</button>
+        
+        <div class="advanced-toggle" id="advancedToggle">
+            <i class="fas fa-cog"></i> Advanced Settings
+        </div>
+        
+        <div class="advanced-settings" id="advancedSettings">
+            <div class="setting-item">
+                <label for="refreshInterval">Refresh Interval (ms)</label>
+                <input type="number" id="refreshInterval" value="30000" min="5000" max="60000" step="5000">
+            </div>
+            <div class="setting-item">
+                <label for="rpcUrl">Custom RPC URL</label>
+                <input type="text" id="rpcUrl" placeholder="https://mainnet.infura.io/v3/your-key">
+            </div>
+        </div>
+
+        <!-- API配置模态框 -->
+        <div class="api-config-modal" id="apiConfigModal">
+            <div class="api-config-content">
+                <div class="api-config-header">
+                    <h3 class="api-config-title">DEX API Configuration</h3>
+                    <button class="close-api-config" id="closeApiConfig">&times;</button>
+                </div>
+                <div class="setting-item">
+                    <label for="1inchApi">1inch API Key</label>
+                    <input type="text" id="1inchApi" placeholder="Your 1inch API key">
+                </div>
+                <div class="setting-item">
+                    <label for="moralisApi">Moralis API Key</label>
+                    <input type="text" id="moralisApi" placeholder="Your Moralis API key">
+                </div>
+                <button class="swap-btn" style="margin-top: 15px;" onclick="saveApiConfig()">Save Configuration</button>
+            </div>
+        </div>
     </div>
 
-    <select id="networkSelector" class="network-selector">
-      <option value="1">Ethereum</option>
-      <option value="56">Binance Smart Chain</option>
-      <option value="137">Polygon</option>
-      <option value="42161">Arbitrum</option>
-      <option value="10">Optimism</option>
-    </select>
-
-    <div class="swap-container">
-      <div class="swap-header">
-        <div class="swap-title">Swap</div>
-        <div class="swap-settings" id="settingsBtn">
-          <i class="fas fa-cog"></i>
+    <!-- 通知组件 -->
+    <div class="notification info" id="notification">
+        <div class="notification-icon">
+            <i class="fas fa-info-circle"></i>
         </div>
-      </div>
-
-      <div class="token-card">
-        <div class="token-row">
-          <div class="token-select" id="fromTokenSelect">
-            <img id="fromTokenIcon" class="token-icon" src="https://cryptologos.cc/logos/ethereum-eth-logo.png" alt="ETH">
-            <span id="fromTokenSymbol" class="token-symbol">ETH</span>
-            <i class="fas fa-chevron-down token-chevron"></i>
-          </div>
-          <input type="number" id="fromAmount" class="token-input" placeholder="0.0" min="0">
+        <div class="notification-content">
+            <div class="notification-title" id="notificationTitle">Info</div>
+            <div class="notification-message" id="notificationMessage">This is a notification message.</div>
         </div>
-        <div class="token-balance" id="fromTokenBalance">Balance: 0</div>
-      </div>
-
-      <div class="swap-arrow">
-        <div class="swap-arrow-line"></div>
-        <button class="swap-arrow-btn" id="swapDirectionBtn">
-          <i class="fas fa-arrow-down"></i>
+        <button class="close-notification" id="closeNotification">
+            <i class="fas fa-times"></i>
         </button>
-      </div>
-
-      <div class="token-card">
-        <div class="token-row">
-          <div class="token-select" id="toTokenSelect">
-            <img id="toTokenIcon" class="token-icon" src="https://cryptologos.cc/logos/usd-coin-usdc-logo.png" alt="USDC">
-            <span id="toTokenSymbol" class="token-symbol">USDC</span>
-            <i class="fas fa-chevron-down token-chevron"></i>
-          </div>
-          <input type="number" id="toAmount" class="token-input" placeholder="0.0" min="0" readonly>
-        </div>
-        <div class="token-balance" id="toTokenBalance">Balance: 0</div>
-      </div>
-
-      <div class="price-info">
-        <span>Exchange Rate</span>
-        <span id="exchangeRate" class="price-value">1 ETH = 0 USDC</span>
-      </div>
-
-      <button id="swapBtn" class="swap-btn" disabled>
-        <span id="swapBtnText">Swap</span>
-      </button>
-
-      <div id="errorMessage" class="message error-message"></div>
-      <div id="successMessage" class="message success-message"></div>
-
-      <div id="settingsPanel" class="settings-panel">
-        <div class="settings-title">Transaction Settings</div>
-        <div class="settings-row">
-          <span class="settings-label">Slippage tolerance</span>
-          <input type="number" id="slippageInput" class="settings-input" value="1">%
-        </div>
-        <div class="settings-row">
-          <span class="settings-label">Transaction deadline</span>
-          <input type="number" id="deadlineInput" class="settings-input" value="20"> mins
-        </div>
-      </div>
     </div>
-  </div>
 
-  <!-- Token Selection Modal -->
-  <div id="tokenModal" class="token-modal">
-    <div class="token-modal-content">
-      <div class="token-modal-header">
-        <div class="token-modal-title">Select a token</div>
-        <button class="token-modal-close" id="closeTokenModal">&times;</button>
-      </div>
-      <input type="text" id="tokenSearch" class="token-search" placeholder="Search token name or paste address">
-      <div class="token-list" id="tokenList">
-        <!-- Tokens will be populated here -->
-      </div>
-      <div class="custom-token">
-        <div class="custom-token-title">Custom Token</div>
-        <input type="text" id="customTokenAddress" class="custom-token-input" placeholder="Paste token address">
-        <button id="addCustomTokenBtn" class="custom-token-btn">Add Custom Token</button>
-      </div>
-    </div>
-  </div>
+    <!-- 引入必要的库 -->
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.7.0/dist/web3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    
+    <script>
+        // DOM Elements
+        const fromAmount = document.getElementById('fromAmount');
+        const toAmount = document.getElementById('toAmount');
+        const fromTokenSelect = document.getElementById('fromTokenSelect');
+        const toTokenSelect = document.getElementById('toTokenSelect');
+        const fromTokenModal = document.getElementById('fromTokenModal');
+        const toTokenModal = document.getElementById('toTokenModal');
+        const fromTokenSearch = document.getElementById('fromTokenSearch');
+        const toTokenSearch = document.getElementById('toTokenSearch');
+        const fromTokenList = document.getElementById('fromTokenList');
+        const toTokenList = document.getElementById('toTokenList');
+        const fromTokenName = document.getElementById('fromTokenName');
+        const toTokenName = document.getElementById('toTokenName');
+        const fromTokenSymbol = document.getElementById('fromTokenSymbol');
+        const priceFromSymbol = document.getElementById('priceFromSymbol');
+        const priceToSymbol = document.getElementById('priceToSymbol');
+        const reverseTokensBtn = document.getElementById('reverseTokensBtn');
+        const priceDisplay = document.getElementById('priceDisplay');
+        const priceValue = document.getElementById('priceValue');
+        const unitToggle = document.getElementById('unitToggle');
+        const advancedToggle = document.getElementById('advancedToggle');
+        const advancedSettings = document.getElementById('advancedSettings');
+        const dexItems = document.querySelectorAll('.dex-item');
+        const slippageOptions = document.querySelectorAll('.slippage-option');
+        const customSlippage = document.getElementById('customSlippage');
+        const customSlippageInput = document.getElementById('customSlippageInput');
+        const connectWalletBtn = document.getElementById('connectWalletBtn');
+        const walletConnected = document.getElementById('walletConnected');
+        const walletAddress = document.getElementById('walletAddress');
+        const walletBalance = document.getElementById('walletBalance');
+        const swapBtn = document.getElementById('swapBtn');
+        const sendToOther = document.getElementById('sendToOther');
+        const recipientAddress = document.getElementById('recipientAddress');
+        const recipientInput = document.getElementById('recipientInput');
+        const amountQuickSelect = document.getElementById('amountQuickSelect');
+        const amountBtns = document.querySelectorAll('.amount-btn');
+        const maxBtn = document.getElementById('maxBtn');
+        const refreshIntervalInput = document.getElementById('refreshInterval');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const chainOptions = document.querySelectorAll('.chain-option');
+        const networkStatus = document.getElementById('networkStatus');
+        const dexConfigBtn = document.getElementById('dexConfigBtn');
+        const apiConfigModal = document.getElementById('apiConfigModal');
+        const closeApiConfig = document.getElementById('closeApiConfig');
+        const notification = document.getElementById('notification');
+        const notificationTitle = document.getElementById('notificationTitle');
+        const notificationMessage = document.getElementById('notificationMessage');
+        const closeNotification = document.getElementById('closeNotification');
+        const transactionStatus = document.getElementById('transactionStatus');
+        const transactionProgress = document.getElementById('transactionProgress');
+        const step1 = document.getElementById('step1');
+        const step2 = document.getElementById('step2');
+        const step3 = document.getElementById('step3');
+        const txLink = document.getElementById('txLink');
+        const rpcUrlInput = document.getElementById('rpcUrl');
+        
+        // State
+        let currentPrice = 0;
+        let isShowingFromPrice = true;
+        let currentSlippage = '1';
+        let isWalletConnected = false;
+        let fromToken = { 
+            symbol: 'ETH', 
+            name: 'Ethereum',
+            address: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+            decimals: 18
+        };
+        let toToken = { 
+            symbol: 'USDC', 
+            name: 'USD Coin',
+            address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            decimals: 6
+        };
+        let userBalance = 0;
+        let refreshInterval = 30000;
+        let priceUpdateInterval;
+        let web3;
+        let userAccount;
+        let currentChain = 'ethereum';
+        let customTokens = [];
+        let apiKeys = {
+            '1inch': '',
+            'moralis': ''
+        };
 
-  <script>
-    // 初始化变量
-    let provider;
-    let signer;
-    let walletAddress = '';
-    let currentChainId = 1; // 默认 Ethereum
-    let isSwapping = false;
-    let selectedTokenSide = 'from'; // 'from' or 'to'
-    
-    // 常用代币列表（ETH主网）
-    const tokenList = [
-      {
-        address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', // ETH 特殊地址
-        symbol: 'ETH',
-        name: 'Ethereum',
-        decimals: 18,
-        logoURI: 'https://cryptologos.cc/logos/ethereum-eth-logo.png'
-      },
-      {
-        address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-        symbol: 'USDC',
-        name: 'USD Coin',
-        decimals: 6,
-        logoURI: 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png'
-      },
-      {
-        address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-        symbol: 'USDT',
-        name: 'Tether',
-        decimals: 6,
-        logoURI: 'https://cryptologos.cc/logos/tether-usdt-logo.png'
-      },
-      {
-        address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
-        symbol: 'DAI',
-        name: 'Dai Stablecoin',
-        decimals: 18,
-        logoURI: 'https://cryptologos.cc/logos/multi-collateral-dai-dai-logo.png'
-      },
-      {
-        address: '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
-        symbol: 'WBTC',
-        name: 'Wrapped Bitcoin',
-        decimals: 8,
-        logoURI: 'https://cryptologos.cc/logos/wrapped-bitcoin-wbtc-logo.png'
-      }
-    ];
-    
-    // 当前选择的代币
-    let fromToken = tokenList[0]; // ETH
-    let toToken = tokenList[1];   // USDC
-    
-    // DOM 元素
-    const connectWalletBtn = document.getElementById('connectWalletBtn');
-    const walletInfo = document.getElementById('walletInfo');
-    const walletAddressEl = document.getElementById('walletAddress');
-    const walletBalanceEl = document.getElementById('walletBalance');
-    const networkSelector = document.getElementById('networkSelector');
-    const fromTokenSelect = document.getElementById('fromTokenSelect');
-    const toTokenSelect = document.getElementById('toTokenSelect');
-    const fromTokenIcon = document.getElementById('fromTokenIcon');
-    const fromTokenSymbol = document.getElementById('fromTokenSymbol');
-    const toTokenIcon = document.getElementById('toTokenIcon');
-    const toTokenSymbol = document.getElementById('toTokenSymbol');
-    const fromAmount = document.getElementById('fromAmount');
-    const toAmount = document.getElementById('toAmount');
-    const fromTokenBalance = document.getElementById('fromTokenBalance');
-    const toTokenBalance = document.getElementById('toTokenBalance');
-    const swapDirectionBtn = document.getElementById('swapDirectionBtn');
-    const swapBtn = document.getElementById('swapBtn');
-    const swapBtnText = document.getElementById('swapBtnText');
-    const exchangeRate = document.getElementById('exchangeRate');
-    const settingsBtn = document.getElementById('settingsBtn');
-    const settingsPanel = document.getElementById('settingsPanel');
-    const slippageInput = document.getElementById('slippageInput');
-    const deadlineInput = document.getElementById('deadlineInput');
-    const tokenModal = document.getElementById('tokenModal');
-    const tokenSearch = document.getElementById('tokenSearch');
-    const tokenListEl = document.getElementById('tokenList');
-    const closeTokenModal = document.getElementById('closeTokenModal');
-    const customTokenAddress = document.getElementById('customTokenAddress');
-    const addCustomTokenBtn = document.getElementById('addCustomTokenBtn');
-    const errorMessage = document.getElementById('errorMessage');
-    const successMessage = document.getElementById('successMessage');
-    
-    // 初始化事件监听器
-    function initEventListeners() {
-      // 连接钱包按钮
-      connectWalletBtn.addEventListener('click', connectWallet);
-      
-      // 网络切换
-      networkSelector.addEventListener('change', handleNetworkChange);
-      
-      // 代币选择
-      fromTokenSelect.addEventListener('click', () => {
-        selectedTokenSide = 'from';
-        showTokenModal();
-      });
-      
-      toTokenSelect.addEventListener('click', () => {
-        selectedTokenSide = 'to';
-        showTokenModal();
-      });
-      
-      // 交换方向按钮
-      swapDirectionBtn.addEventListener('click', swapTokens);
-      
-      // 数量输入
-      fromAmount.addEventListener('input', debounce(updateQuote, 500));
-      
-      // 设置按钮
-      settingsBtn.addEventListener('click', toggleSettingsPanel);
-      
-      // 关闭代币选择模态框
-      closeTokenModal.addEventListener('click', hideTokenModal);
-      
-      // 代币搜索
-      tokenSearch.addEventListener('input', filterTokenList);
-      
-      // 添加自定义代币
-      addCustomTokenBtn.addEventListener('click', addCustomToken);
-      
-      // 执行兑换
-      swapBtn.addEventListener('click', executeSwap);
-    }
-    
-    // 连接钱包函数
-    async function connectWallet() {
-      try {
-        // 检查是否安装了 MetaMask
-        if (window.ethereum) {
-          // 请求账户访问
-          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-          
-          // 初始化 ethers.js provider 和 signer
-          provider = new ethers.BrowserProvider(window.ethereum);
-          signer = await provider.getSigner();
-          walletAddress = accounts[0];
-          
-          // 获取当前链ID
-          currentChainId = parseInt(await window.ethereum.request({ method: 'eth_chainId' }), 16);
-          networkSelector.value = currentChainId.toString();
-          
-          // 更新UI显示钱包信息
-          updateWalletInfo();
-          
-          // 监听账户变化
-          window.ethereum.on('accountsChanged', (newAccounts) => {
-            if (newAccounts.length > 0) {
-              walletAddress = newAccounts[0];
-              updateWalletInfo();
-              updateTokenBalances();
-            } else {
-              // 用户断开连接
-              disconnectWallet();
+        // 初始化
+        initWeb3();
+        startRealTimeUpdates();
+        loadApiConfig();
+
+        // Event Listeners
+        fromAmount.addEventListener('input', updateConversion);
+        toAmount.addEventListener('input', updateReverseConversion);
+        unitToggle.addEventListener('click', togglePriceDisplay);
+        reverseTokensBtn.addEventListener('click', reverseTokens);
+        advancedToggle.addEventListener('click', toggleAdvancedSettings);
+        connectWalletBtn.addEventListener('click', connectWallet);
+        sendToOther.addEventListener('change', toggleRecipientAddress);
+        refreshIntervalInput.addEventListener('change', updateRefreshInterval);
+        refreshBtn.addEventListener('click', manualRefresh);
+        dexConfigBtn.addEventListener('click', () => apiConfigModal.classList.add('show'));
+        closeApiConfig.addEventListener('click', () => apiConfigModal.classList.remove('show'));
+        closeNotification.addEventListener('click', () => notification.classList.remove('show'));
+        swapBtn.addEventListener('click', executeSwap);
+        customSlippageInput.addEventListener('input', updateSlippage);
+
+        // Token selection modals
+        fromTokenSelect.addEventListener('click', (e) => {
+            e.stopPropagation();
+            fromTokenModal.classList.toggle('show');
+            toTokenModal.classList.remove('show');
+        });
+        
+        toTokenSelect.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toTokenModal.classList.toggle('show');
+            fromTokenModal.classList.remove('show');
+        });
+        
+        // Close modals when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!fromTokenSelect.contains(e.target)) {
+                fromTokenModal.classList.remove('show');
             }
-          });
-          
-          // 监听链变化
-          window.ethereum.on('chainChanged', (chainId) => {
-            currentChainId = parseInt(chainId, 16);
-            networkSelector.value = currentChainId.toString();
-            updateWalletInfo();
-            updateTokenBalances();
-          });
-          
-          // 获取代币余额
-          updateTokenBalances();
-          
-          // 更新按钮状态
-          connectWalletBtn.style.display = 'none';
-          walletInfo.style.display = 'flex';
-          
-          // 显示成功消息
-          showSuccessMessage('Wallet connected successfully');
-        } else {
-          throw new Error('MetaMask not detected. Please install MetaMask to use this app.');
-        }
-      } catch (error) {
-        showErrorMessage(error.message);
-        console.error('Error connecting wallet:', error);
-      }
-    }
-    
-    // 断开钱包连接
-    function disconnectWallet() {
-      walletAddress = '';
-      provider = null;
-      signer = null;
-      
-      // 更新UI
-      connectWalletBtn.style.display = 'block';
-      walletInfo.style.display = 'none';
-      fromTokenBalance.textContent = 'Balance: 0';
-      toTokenBalance.textContent = 'Balance: 0';
-      
-      // 重置输入
-      fromAmount.value = '';
-      toAmount.value = '';
-      exchangeRate.textContent = '1 ETH = 0 USDC';
-      
-      // 禁用兑换按钮
-      swapBtn.disabled = true;
-    }
-    
-    // 更新钱包信息
-    async function updateWalletInfo() {
-      if (!provider || !walletAddress) return;
-      
-      try {
-        // 显示钱包地址（缩短）
-        const shortAddress = `${walletAddress.substring(0, 6)}...${walletAddress.substring(walletAddress.length - 4)}`;
-        walletAddressEl.textContent = shortAddress;
-        
-        // 获取ETH余额
-        const balance = await provider.getBalance(walletAddress);
-        const ethBalance = ethers.formatEther(balance);
-        walletBalanceEl.textContent = `${parseFloat(ethBalance).toFixed(4)} ETH`;
-      } catch (error) {
-        console.error('Error updating wallet info:', error);
-      }
-    }
-    
-    // 更新代币余额
-    async function updateTokenBalances() {
-      if (!provider || !walletAddress) return;
-      
-      try {
-        // 更新fromToken余额
-        if (fromToken.symbol === 'ETH') {
-          const balance = await provider.getBalance(walletAddress);
-          const ethBalance = ethers.formatEther(balance);
-          fromTokenBalance.textContent = `Balance: ${parseFloat(ethBalance).toFixed(4)} ETH`;
-        } else {
-          // ERC20代币余额
-          const tokenContract = new ethers.Contract(
-            fromToken.address,
-            ['function balanceOf(address) view returns (uint256)'],
-            provider
-          );
-          const balance = await tokenContract.balanceOf(walletAddress);
-          const formattedBalance = ethers.formatUnits(balance, fromToken.decimals);
-          fromTokenBalance.textContent = `Balance: ${parseFloat(formattedBalance).toFixed(4)} ${fromToken.symbol}`;
-        }
-        
-        // 更新toToken余额
-        if (toToken.symbol === 'ETH') {
-          const balance = await provider.getBalance(walletAddress);
-          const ethBalance = ethers.formatEther(balance);
-          toTokenBalance.textContent = `Balance: ${parseFloat(ethBalance).toFixed(4)} ETH`;
-        } else {
-          // ERC20代币余额
-          const tokenContract = new ethers.Contract(
-            toToken.address,
-            ['function balanceOf(address) view returns (uint256)'],
-            provider
-          );
-          const balance = await tokenContract.balanceOf(walletAddress);
-          const formattedBalance = ethers.formatUnits(balance, toToken.decimals);
-          toTokenBalance.textContent = `Balance: ${parseFloat(formattedBalance).toFixed(4)} ${toToken.symbol}`;
-        }
-      } catch (error) {
-        console.error('Error updating token balances:', error);
-      }
-    }
-    
-    // 处理网络切换
-    async function handleNetworkChange() {
-      const newChainId = parseInt(networkSelector.value);
-      
-      try {
-        // 请求切换网络
-        await window.ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: `0x${newChainId.toString(16)}` }],
+            if (!toTokenSelect.contains(e.target)) {
+                toTokenModal.classList.remove('show');
+            }
         });
         
-        // 更新当前链ID
-        currentChainId = newChainId;
-      } catch (error) {
-        console.error('Error switching network:', error);
-        networkSelector.value = currentChainId.toString(); // 恢复之前的选择
-        showErrorMessage(`Failed to switch network: ${error.message}`);
-      }
-    }
-    
-    // 显示代币选择模态框
-    function showTokenModal() {
-      // 填充代币列表
-      populateTokenList();
-      
-      // 显示模态框
-      tokenModal.classList.add('show');
-    }
-    
-    // 隐藏代币选择模态框
-    function hideTokenModal() {
-      tokenModal.classList.remove('show');
-    }
-    
-    // 填充代币列表
-    function populateTokenList() {
-      tokenListEl.innerHTML = '';
-      
-      tokenList.forEach(token => {
-        const tokenItem = document.createElement('div');
-        tokenItem.className = 'token-item';
-        tokenItem.innerHTML = `
-          <img src="${token.logoURI}" alt="${token.symbol}" class="token-item-icon">
-          <div class="token-item-info">
-            <div class="token-item-symbol">${token.symbol}</div>
-            <div class="token-item-name">${token.name}</div>
-          </div>
-        `;
-        
-        tokenItem.addEventListener('click', () => {
-          selectToken(token);
-          hideTokenModal();
+        // Token search functionality
+        fromTokenSearch.addEventListener('input', () => {
+            filterTokens(fromTokenSearch.value, fromTokenList);
         });
         
-        tokenListEl.appendChild(tokenItem);
-      });
-    }
-    
-    // 过滤代币列表
-    function filterTokenList() {
-      const searchTerm = tokenSearch.value.toLowerCase();
-      const tokenItems = tokenListEl.querySelectorAll('.token-item');
-      
-      tokenItems.forEach(item => {
-        const text = item.textContent.toLowerCase();
-        if (text.includes(searchTerm)) {
-          item.style.display = 'flex';
-        } else {
-          item.style.display = 'none';
-        }
-      });
-    }
-    
-    // 选择代币
-    function selectToken(token) {
-      if (selectedTokenSide === 'from') {
-        fromToken = token;
-        fromTokenIcon.src = token.logoURI;
-        fromTokenSymbol.textContent = token.symbol;
-      } else {
-        toToken = token;
-        toTokenIcon.src = token.logoURI;
-        toTokenSymbol.textContent = token.symbol;
-      }
-      
-      // 更新余额
-      updateTokenBalances();
-      
-      // 如果输入了金额，重新获取报价
-      if (fromAmount.value) {
-        updateQuote();
-      }
-    }
-    
-    // 添加自定义代币
-    function addCustomToken() {
-      const address = customTokenAddress.value.trim();
-      
-      if (!address) {
-        showErrorMessage('Please enter a token address');
-        return;
-      }
-      
-      if (!ethers.isAddress(address)) {
-        showErrorMessage('Invalid token address');
-        return;
-      }
-      
-      // 这里应该调用API获取代币信息，但为了简化，我们只添加一个占位符
-      const customToken = {
-        address: address,
-        symbol: 'CUSTOM',
-        name: 'Custom Token',
-        decimals: 18,
-        logoURI: 'https://cryptologos.cc/logos/ethereum-eth-logo.png' // 默认图标
-      };
-      
-      // 添加到代币列表
-      tokenList.push(customToken);
-      
-      // 选择这个代币
-      selectToken(customToken);
-      
-      // 清空输入
-      customTokenAddress.value = '';
-      
-      // 隐藏模态框
-      hideTokenModal();
-    }
-    
-    // 交换代币方向
-    function swapTokens() {
-      // 交换代币
-      const tempToken = fromToken;
-      fromToken = toToken;
-      toToken = tempToken;
-      
-      // 更新UI
-      fromTokenIcon.src = fromToken.logoURI;
-      fromTokenSymbol.textContent = fromToken.symbol;
-      toTokenIcon.src = toToken.logoURI;
-      toTokenSymbol.textContent = toToken.symbol;
-      
-      // 交换金额
-      const tempAmount = fromAmount.value;
-      fromAmount.value = toAmount.value;
-      toAmount.value = tempAmount;
-      
-      // 更新余额
-      updateTokenBalances();
-      
-      // 如果输入了金额，重新获取报价
-      if (fromAmount.value) {
-        updateQuote();
-      }
-    }
-    
-    // 更新报价（调用1inch API）
-    async function updateQuote() {
-      if (!fromAmount.value || parseFloat(fromAmount.value) <= 0) {
-        toAmount.value = '';
-        exchangeRate.textContent = `1 ${fromToken.symbol} = 0 ${toToken.symbol}`;
-        swapBtn.disabled = true;
-        return;
-      }
-      
-      if (!walletAddress) {
-        showErrorMessage('Please connect your wallet first');
-        return;
-      }
-      
-      if (fromToken.address === toToken.address) {
-        showErrorMessage('Cannot swap the same token');
-        return;
-      }
-      
-      try {
-        // 显示加载状态
-        swapBtn.disabled = true;
-        swapBtnText.innerHTML = '<div class="loading"></div>';
-        
-        // 获取滑点设置
-        const slippage = parseFloat(slippageInput.value) || 1;
-        
-        // 构建1inch API URL
-        const chainId = currentChainId;
-        let apiUrl;
-        
-        if (chainId === 1) {
-          apiUrl = 'https://api.1inch.io/v5.0/1';
-        } else if (chainId === 56) {
-          apiUrl = 'https://api.1inch.io/v5.0/56';
-        } else if (chainId === 137) {
-          apiUrl = 'https://api.1inch.io/v5.0/137';
-        } else if (chainId === 42161) {
-          apiUrl = 'https://api.1inch.io/v5.0/42161';
-        } else if (chainId === 10) {
-          apiUrl = 'https://api.1inch.io/v5.0/10';
-        } else {
-          throw new Error('Unsupported chain for 1inch API');
-        }
-        
-        // 获取报价
-        const fromTokenAddress = fromToken.symbol === 'ETH' ? '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' : fromToken.address;
-        const toTokenAddress = toToken.symbol === 'ETH' ? '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' : toToken.address;
-        const amount = ethers.parseUnits(fromAmount.value, fromToken.decimals).toString();
-        
-        const quoteUrl = `${apiUrl}/quote?fromTokenAddress=${fromTokenAddress}&toTokenAddress=${toTokenAddress}&amount=${amount}`;
-        
-        const response = await fetch(quoteUrl);
-        const quoteData = await response.json();
-        
-        if (!response.ok) {
-          throw new Error(quoteData.description || 'Failed to get quote from 1inch');
-        }
-        
-        // 解析报价
-        const toTokenAmount = ethers.formatUnits(quoteData.toTokenAmount, toToken.decimals);
-        const exchangeRateValue = quoteData.toTokenAmount / quoteData.fromTokenAmount;
-        
-        // 更新UI
-        toAmount.value = parseFloat(toTokenAmount).toFixed(6);
-        exchangeRate.textContent = `1 ${fromToken.symbol} = ${exchangeRateValue.toFixed(6)} ${toToken.symbol}`;
-        
-        // 启用兑换按钮
-        swapBtn.disabled = false;
-        swapBtnText.textContent = 'Swap';
-        
-        // 清除错误消息
-        errorMessage.textContent = '';
-      } catch (error) {
-        console.error('Error getting quote:', error);
-        showErrorMessage(`Failed to get quote: ${error.message}`);
-        
-        // 重置UI
-        toAmount.value = '';
-        exchangeRate.textContent = `1 ${fromToken.symbol} = 0 ${toToken.symbol}`;
-        swapBtn.disabled = true;
-        swapBtnText.textContent = 'Swap';
-      }
-    }
-    
-    // 执行兑换
-    async function executeSwap() {
-      if (isSwapping) return;
-      isSwapping = true;
-      
-      try {
-        if (!walletAddress) {
-          throw new Error('Please connect your wallet first');
-        }
-        
-        if (!fromAmount.value || parseFloat(fromAmount.value) <= 0) {
-          throw new Error('Please enter a valid amount');
-        }
-        
-        if (fromToken.address === toToken.address) {
-          throw new Error('Cannot swap the same token');
-        }
-        
-        // 显示加载状态
-        swapBtn.disabled = true;
-        swapBtnText.innerHTML = '<div class="loading"></div>';
-        
-        // 获取滑点设置
-        const slippage = parseFloat(slippageInput.value) || 1;
-        
-        // 构建1inch API URL
-        const chainId = currentChainId;
-        let apiUrl;
-        
-        if (chainId === 1) {
-          apiUrl = 'https://api.1inch.io/v5.0/1';
-        } else if (chainId === 56) {
-          apiUrl = 'https://api.1inch.io/v5.0/56';
-        } else if (chainId === 137) {
-          apiUrl = 'https://api.1inch.io/v5.0/137';
-        } else if (chainId === 42161) {
-          apiUrl = 'https://api.1inch.io/v5.0/42161';
-        } else if (chainId === 10) {
-          apiUrl = 'https://api.1inch.io/v5.0/10';
-        } else {
-          throw new Error('Unsupported chain for 1inch API');
-        }
-        
-        // 获取交换数据
-        const fromTokenAddress = fromToken.symbol === 'ETH' ? '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' : fromToken.address;
-        const toTokenAddress = toToken.symbol === 'ETH' ? '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' : toToken.address;
-        const amount = ethers.parseUnits(fromAmount.value, fromToken.decimals).toString();
-        
-        const swapUrl = `${apiUrl}/swap?fromTokenAddress=${fromTokenAddress}&toTokenAddress=${toTokenAddress}&amount=${amount}&fromAddress=${walletAddress}&slippage=${slippage}`;
-        
-        const response = await fetch(swapUrl);
-        const swapData = await response.json();
-        
-        if (!response.ok) {
-          throw new 错误(swapData。description || 'Failed to get swap data from 1inch');
-        }
-        
-        // 发送交易
-        const tx = await signer.sendTransaction({
-          到: swapData。tx。到，
-          data: swapData。tx。data，
-          value: swapData.tx.value,
-          gasLimit: swapData.tx.gas,
+        toTokenSearch.addEventListener('input', () => {
+            filterTokens(toTokenSearch.value, toTokenList);
         });
         
-        // 显示成功消息
-        showSuccessMessage(`Transaction sent! TX Hash: ${tx。hash}`);
+        // Token item selection
+        document.querySelectorAll('.token-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const symbol = this.getAttribute('data-symbol');
+                const name = this.getAttribute('data-name');
+                const address = this.getAttribute('data-address');
+                const decimals = parseInt(this.getAttribute('data-decimals') || '18');
+                
+                if (this.closest('#fromTokenModal')) {
+                    selectToken(symbol, name, address, decimals, 'from');
+                    fromTokenModal.classList.remove('show');
+                } else {
+                    selectToken(symbol, name, address, decimals, 'to');
+                    toTokenModal.classList.remove('show');
+                }
+            });
+        });
         
-        // 等待交易确认
-        const receipt = await tx.wait();
-        console。log('Transaction receipt:'， receipt);
+        // Chain selection event listeners
+        chainOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                chainOptions.forEach(o => o.classList.remove('active'));
+                option.classList.add('active');
+                currentChain = option.dataset.chain;
+                networkStatus.innerHTML = `<i class="fas fa-network-wired"></i> Connected to ${option.querySelector('span').textContent} Network`;
+                showNotification('Network Changed', `Switched to ${option.querySelector('span').textContent} network`, 'info');
+                // 在实际应用中，这里应该切换网络
+            });
+        });
         
-        // 更新余额
-        updateTokenBalances();
-      } catch (error) {
-        console。error('Error executing swap:'， error);
-        showErrorMessage(`Swap failed: ${error。message}`);
-      } finally {
-        // 重置按钮状态
-        swapBtn.disabled = false;
-        swapBtnText。textContent = 'Swap';
-        isSwapping = false;
-      }
-    }
-    
-    // 切换设置面板
-    function toggleSettingsPanel() {
-      if (settingsPanel.style.display === 'block') {
-        settingsPanel。style。display = 'none';
-      } else {
-        settingsPanel。style。display = 'block';
-      }
-    }
-    
-    // 显示错误消息
-    function showErrorMessage(message) {
-      errorMessage。textContent = message;
-      successMessage。textContent = '';
-    }
-    
-    // 显示成功消息
-    function showSuccessMessage(message) {
-      successMessage。textContent = message;
-      errorMessage。textContent = '';
-    }
-    
-    // 防抖函数
-    function debounce(func， timeout = 300) {
-      let timer;
-      return (...args) => {
-        clearTimeout(timer);
-        timer = setTimeout(() => { func.apply(this, args); }, timeout);
-      };
-    }
-    
-    // 初始化应用
-    function initApp() {
-      initEventListeners();
-      
-      // 检查是否已经连接了钱包
-      if (window。ethereum && window。ethereum.selectedAddress) {
-        connectWallet();
-      }
-    }
-    
-    // 启动应用
-    window。addEventListener('DOMContentLoaded', initApp);
-  </script>
+        // Amount quick select event listeners
+        amountBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                amountBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                let amount;
+                if (btn.dataset.percent) {
+                    const percent = parseFloat(btn.dataset.percent);
+                    amount = (userBalance * percent) / 100;
+                }
+                
+                fromAmount.value = amount.toFixed(fromToken.decimals > 6 ? 6 : fromToken.decimals);
+                updateConversion();
+            });
+        });
+        
+        // Slippage options event listeners
+        slippageOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                if (option.classList.contains('custom-container')) return;
+                
+                slippageOptions.forEach(o => o.classList.remove('active'));
+                option.classList.add('active');
+                currentSlippage = option.dataset.value;
+                
+                if (currentSlippage !== 'custom') {
+                    customSlippage.classList.remove('active');
+                }
+            });
+        });
+        
+        customSlippage.addEventListener('click', () => {
+            slippageOptions.forEach(o => o.classList.remove('active'));
+            customSlippage.classList.add('active');
+            currentSlippage = 'custom';
+            customSlippageInput.focus();
+        });
+        
+        dexItems.forEach(item => {
+            item.addEventListener('click', () => {
+                dexItems.forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+            });
+        });
+        
+        // Functions
+        function initWeb3() {
+            // 检查是否安装了MetaMask或其他Web3钱包
+            if (typeof window.ethereum !== 'undefined') {
+                web3 = new Web3(window.ethereum);
+                showNotification('Web3 Found', 'Web3 wallet detected', 'info');
+            } else {
+                // 使用Infura作为后备
+                web3 = new Web3(new Web3.providers.HttpProvider('https://mainnet.infura.io/v3/'));
+                showNotification('Web3 Not Found', 'Using fallback provider', 'info');
+            }
+        }
+        
+        async function connectWallet() {
+            try {
+                // 请求账户访问
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                userAccount = accounts[0];
+                
+                isWalletConnected = true;
+                connectWalletBtn.style.display = 'none';
+                walletConnected.style.display = 'flex';
+                
+                walletAddress.textContent = `${userAccount.substring(0, 6)}...${userAccount.substring(38)}`;
+                
+                // 获取余额
+                await updateBalance();
+                
+                swapBtn.disabled = false;
+                swapBtn.textContent = 'Swap';
+                
+                showNotification('Wallet Connected', 'Your wallet has been successfully connected', 'success');
+            } catch (error) {
+                console.error('Error connecting wallet:', error);
+                showNotification('Connection Error', 'Could not connect to wallet', 'error');
+            }
+        }
+        
+        async function updateBalance() {
+            if (!userAccount) return;
+            
+            try {
+                if (fromToken.address === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
+                    // ETH余额
+                    const balance = await web3.eth.getBalance(userAccount);
+                    userBalance = web3.utils.fromWei(balance, 'ether');
+                } else {
+                    // ERC20代币余额
+                    // 这里需要代币合约ABI（简化版）
+                    const minABI = [
+                        {
+                            "constant": true,
+                            "inputs": [{"name": "_owner", "type": "address"}],
+                            "name": "balanceOf",
+                            "outputs": [{"name": "balance", "type": "uint256"}],
+                            "type": "function"
+                        }
+                    ];
+                    
+                    const contract = new web3.eth.Contract(minABI, fromToken.address);
+                    const balance = await contract.methods.balanceOf(userAccount).call();
+                    userBalance = balance / (10 ** fromToken.decimals);
+                }
+                
+                walletBalance.textContent = Number(userBalance).toFixed(4);
+                fromTokenSymbol.textContent = fromToken.symbol;
+            } catch (error) {
+                console.error('Error fetching balance:', error);
+                showNotification('Balance Error', 'Could not fetch balance', 'error');
+            }
+        }
+        
+        function loadApiConfig() {
+            const savedConfig = localStorage.getItem('dexApiConfig');
+            if (savedConfig) {
+                const config = JSON.parse(savedConfig);
+                apiKeys = config;
+                
+                document.getElementById('1inchApi').value = apiKeys['1inch'];
+                document.getElementById('moralisApi').value = apiKeys['moralis'];
+            }
+        }
+
+        function saveApiConfig() {
+            apiKeys['1inch'] = document.getElementById('1inchApi').value;
+            apiKeys['moralis'] = document.getElementById('moralisApi').value;
+            
+            localStorage.setItem('dexApiConfig', JSON.stringify(apiKeys));
+            showNotification('Success', 'API configuration saved successfully!', 'success');
+            apiConfigModal.classList.remove('show');
+        }
+
+        function startRealTimeUpdates() {
+            clearInterval(priceUpdateInterval);
+            
+            priceUpdateInterval = setInterval(() => {
+                fetchMarketPrice();
+            }, refreshInterval);
+            
+            // 初始获取价格
+            fetchMarketPrice();
+        }
+        
+        function updateRefreshInterval() {
+            refreshInterval = parseInt(refreshIntervalInput.value);
+            startRealTimeUpdates();
+        }
+        
+        function manualRefresh() {
+            refreshBtn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i>';
+            fetchMarketPrice();
+            setTimeout(() => {
+                refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+            }, 1000);
+        }
+        
+        async function fetchMarketPrice() {
+            try {
+                // 使用1inch API获取价格信息
+                let response;
+                if (apiKeys['1inch']) {
+                    response = await axios.get(`https://api.1inch.io/v4.0/1/quote?fromTokenAddress=${fromToken.address}&toTokenAddress=${toToken.address}&amount=${web3.utils.toWei('1', 'ether')}`, {
+                        headers: { 'Authorization': `Bearer ${apiKeys['1inch']}` }
+                    });
+                } else {
+                    // 使用公开API（可能有速率限制）
+                    response = await axios.get(`https://api.1inch.io/v4.0/1/quote?fromTokenAddress=${fromToken.address}&toTokenAddress=${toToken.address}&amount=${web3.utils.toWei('1', 'ether')}`);
+                }
+                
+                const quote = response.data;
+                currentPrice = quote.toTokenAmount / (10 ** toToken.decimals);
+                
+                updatePriceDisplay();
+                updateConversion();
+                
+            } catch (error) {
+                console.error('Error fetching market price:', error);
+                // 备用方案：使用模拟数据
+                currentPrice = fromToken.symbol === 'ETH' ? 2000 : 0.0005;
+                updatePriceDisplay();
+                updateConversion();
+                showNotification('Price Error', 'Using estimated price data', 'info');
+            }
+        }
+        
+        function filterTokens(searchTerm, tokenList) {
+            const tokens = tokenList.querySelectorAll('.token-item');
+            tokens.forEach(token => {
+                const tokenText = token.textContent.toLowerCase();
+                if (tokenText.includes(searchTerm.toLowerCase())) {
+                    token.style.display = 'flex';
+                } else {
+                    token.style.display = 'none';
+                }
+            });
+        }
+        
+        function selectToken(symbol, name, address, decimals, type) {
+            if (type === 'from') {
+                fromToken = { symbol, name, address, decimals };
+                fromTokenName.textContent = symbol;
+                fromTokenSymbol.textContent = symbol;
+                priceFromSymbol.textContent = symbol;
+                updateTokenIcon(fromTokenSelect, symbol);
+                
+                // 更新余额
+                if (isWalletConnected) {
+                    updateBalance();
+                }
+            } else {
+                toToken = { symbol, name, address, decimals };
+                toTokenName.textContent = symbol;
+                priceToSymbol.textContent = symbol;
+                updateTokenIcon(toTokenSelect, symbol);
+            }
+            
+            // 重新获取价格
+            fetchMarketPrice();
+        }
+        
+        function updateTokenIcon(element, symbol) {
+            const icon = element.querySelector('.token-icon');
+            icon.textContent = symbol.charAt(0);
+            
+            const colors = {
+                'ETH': '#627eea',
+                'USDC': '#2775ca',
+                'USDT': '#26a17b',
+                'DAI': '#f5ac37',
+                'WBTC': '#f7931a',
+                'SOL': 'linear-gradient(45deg, #9945ff, #14f195)'
+            };
+            
+            icon.style.background = colors[symbol] || '#00c6ff';
+        }
+        
+        function addCustomToken(type) {
+            const inputId = type + 'CustomToken';
+            const contractAddress = document.getElementById(inputId).value;
+            
+            if (contractAddress && web3.utils.isAddress(contractAddress)) {
+                // 在实际应用中，这里应该获取代币的符号和小数位数
+                const customToken = {
+                    symbol: 'CUSTOM',
+                    name: 'Custom Token',
+                    address: contractAddress,
+                    decimals: 18
+                };
+                
+                customTokens.push(customToken);
+                
+                const tokenList = document.getElementById(type + 'TokenList');
+                const tokenItem = document.createElement('div');
+                tokenItem.className = 'token-item';
+                tokenItem.setAttribute('data-symbol', 'CUSTOM');
+                tokenItem.setAttribute('data-name', 'Custom Token');
+                tokenItem.setAttribute('data-address', contractAddress);
+                tokenItem.setAttribute('data-decimals', '18');
+                tokenItem.innerHTML = `
+                    <div class="token-icon" style="background: #00c6ff;">C</div>
+                    <span>CUSTOM - Custom Token</span>
+                `;
+                tokenItem.addEventListener('click', function() {
+                    selectToken('CUSTOM', 'Custom Token', contractAddress, 18, type);
+                    document.getElementById(type + 'TokenModal').classList.remove('show');
+                });
+                tokenList.appendChild(tokenItem);
+                
+                document.getElementById(inputId).value = '';
+                showNotification('Success', 'Custom token added successfully!', 'success');
+            } else {
+                showNotification('Error', 'Invalid contract address', 'error');
+            }
+        }
+        
+        function updatePriceDisplay() {
+            if (isShowingFromPrice) {
+                priceValue.innerHTML = `
+                    <span class="price-main">${currentPrice.toFixed(6)}</span> ${toToken.symbol}
+                `;
+            } else {
+                priceValue.innerHTML = `
+                    <span class="price-main">${(1 / currentPrice).toFixed(6)}</span> ${fromToken.symbol}
+                `;
+            }
+        }
+        
+        function updateConversion() {
+            const amount = parseFloat(fromAmount.value) || 0;
+            const result = amount * currentPrice;
+            toAmount.value = result.toFixed(toToken.decimals > 6 ? 6 : toToken.decimals);
+        }
+        
+        function updateReverseConversion() {
+            const amount = parseFloat(toAmount.value) || 0;
+            const result = amount / currentPrice;
+            fromAmount.value = result.toFixed(fromToken.decimals > 6 ? 6 : fromToken.decimals);
+        }
+        
+        function togglePriceDisplay() {
+            isShowingFromPrice = !isShowingFromPrice;
+            updatePriceDisplay();
+        }
+        
+        function reverseTokens() {
+            amountBtns.forEach(btn => btn.classList.remove('active'));
+            [fromToken, toToken] = [toToken, fromToken];
+            
+            fromTokenName.textContent = fromToken.symbol;
+            toTokenName.textContent = toToken.symbol;
+            fromTokenSymbol.textContent = fromToken.symbol;
+            priceFromSymbol.textContent = fromToken.symbol;
+            
+            updateTokenIcon(fromTokenSelect, fromToken.symbol);
+            updateTokenIcon(toTokenSelect, toToken.symbol);
+            
+            [fromAmount.value, toAmount.value] = [toAmount.value, fromAmount.value];
+            
+            // 更新余额
+            if (isWalletConnected) {
+                updateBalance();
+            }
+            
+            // 重新获取价格
+            fetchMarketPrice();
+        }
+        
+        function toggleAdvancedSettings() {
+            advancedSettings.classList.toggle('show');
+            
+            if (advancedSettings.classList.contains('show')) {
+                advancedToggle.innerHTML = '<i class="fas fa-cog"></i> Hide Settings';
+            } else {
+                advancedToggle.innerHTML = '<i class="fas fa-cog"></i> Advanced Settings';
+            }
+        }
+        
+        function toggleRecipientAddress() {
+            if (sendToOther.checked) {
+                recipientAddress.style.display = 'block';
+            } else {
+                recipientAddress.style.display = 'none';
+                recipientInput.value = '';
+            }
+        }
+        
+        function updateSlippage() {
+            if (customSlippageInput.value) {
+                currentSlippage = customSlippageInput.value;
+            }
+        }
+        
+        function showNotification(title, message, type) {
+            notification.className = `notification ${type}`;
+            notificationTitle.textContent = title;
+            notificationMessage.textContent = message;
+            
+            const icon = notification.querySelector('.notification-icon i');
+            icon.className = 
+                type === 'success' ? 'fas fa-check-circle' :
+                type === 'error' ? 'fas fa-exclamation-circle' :
+                'fas fa-info-circle';
+            
+            notification.classList.add('show');
+            
+            // Auto hide after 5 seconds
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 5000);
+        }
+        
+        async function executeSwap() {
+            if (!isWalletConnected) {
+                showNotification('Error', 'Please connect your wallet first', 'error');
+                return;
+            }
+            
+            const amount = parseFloat(fromAmount.value);
+            if (!amount || amount <= 0) {
+                showNotification('Error', 'Please enter a valid amount', 'error');
+                return;
+            }
+            
+            if (amount > userBalance) {
+                showNotification('Error', 'Insufficient balance', 'error');
+                return;
+            }
+            
+            // Show transaction status
+            transactionStatus.classList.add('show');
+            transactionProgress.style.width = '33%';
+            step1.classList.add('completed');
+            step2.classList.add('active');
+            
+            showNotification('Transaction Submitted', 'Your swap transaction has been submitted', 'info');
+            
+            try {
+                // 在实际应用中，这里应该使用1inch API或其他DEX API获取交易数据
+                // 然后使用web3发送交易
+                
+                // 模拟交易进度
+                let progress = 33;
+                const progressInterval = setInterval(() => {
+                    progress += Math.random() * 10;
+                    if (progress >= 100) {
+                        progress = 100;
+                        clearInterval(progressInterval);
+                        
+                        // Transaction completed
+                        setTimeout(() => {
+                            transactionProgress.style.width = '100%';
+                            step2.classList.remove('active');
+                            step2.classList.add('completed');
+                            step3.classList.add('completed');
+                            
+                            // 生成随机交易哈希
+                            const txHash = '0x' + Math.random().toString(16).substr(2, 64);
+                            txLink.textContent = `${txHash.substring(0, 10)}...${txHash.substring(58)}`;
+                            txLink.href = `https://etherscan.io/tx/${txHash}`;
+                            
+                            showNotification('Swap Completed', 'Your transaction was successful', 'success');
+                            
+                            // 更新用户余额
+                            userBalance -= amount;
+                            walletBalance.textContent = Number(userBalance).toFixed(4);
+                        }, 1000);
+                    } else {
+                        transactionProgress.style.width = `${progress}%`;
+                    }
+                }, 300);
+            } catch (error) {
+                console.error('Swap error:', error);
+                showNotification('Swap Error', 'Transaction failed', 'error');
+                transactionStatus.classList.remove('show');
+            }
+        }
+
+        // 初始化价格显示
+        updatePriceDisplay();
+    </script>
 </body>
 </html>
