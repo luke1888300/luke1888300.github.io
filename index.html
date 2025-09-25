@@ -1,760 +1,98 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DEX聚合交易平台</title>
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-    <style>
-        :root {
-            --primary: #0e7bff;
-            --primary-dark: #0a5fcc;
-            --secondary: #f0f4ff;
-            --text: #333;
-            --text-light: #666;
-            --border: #ddd;
-            --background: #fff;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --error: #ef4444;
-            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background-color: #f5f7fa;
-            color: var(--text);
-            line-height: 1.6;
-            padding: 20px;
-            min-height: 100vh;
-        }
-
-        .container {
-            max-width: 480px;
-            margin: 0 auto;
-            background-color: var(--background);
-            border-radius: 16px;
-            box-shadow: var(--shadow);
-            overflow: hidden;
-        }
-
-        header {
-            padding: 20px;
-            text-align: center;
-            border-bottom: 1px solid var(--border);
-            background-color: var(--secondary);
-            position: relative;
-        }
-
-        h1 {
-            font-size: 1.5rem;
-            color: var(--primary);
-            margin-bottom: 10px;
-        }
-
-        .wallet-connect {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-        }
-
-        .connect-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 20px;
-            padding: 8px 16px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .wallet-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: white;
-            border-radius: 20px;
-            padding: 6px 12px;
-            border: 1px solid var(--border);
-        }
-
-        .wallet-address {
-            font-size: 0.8rem;
-            font-weight: bold;
-        }
-
-        .disconnect-btn {
-            background: none;
-            border: none;
-            color: var(--error);
-            cursor: pointer;
-        }
-
-        .network-selector {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .network-btn {
-            padding: 8px 16px;
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            background: white;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
-
-        .network-btn.active {
-            background: var(--primary);
-            color: white;
-        }
-
-        .swap-container {
-            padding: 20px;
-        }
-
-        .token-input {
-            background-color: var(--secondary);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 15px;
-        }
-
-        .token-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .token-label {
-            font-size: 0.9rem;
-            color: var(--text-light);
-        }
-
-        .balance {
-            font-size: 0.85rem;
-            color: var(--text-light);
-        }
-
-        .amount-selector {
-            margin: 10px 0;
-        }
-
-        .amount-options {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .amount-option {
-            padding: 6px 10px;
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            background: white;
-            cursor: pointer;
-            font-size: 0.8rem;
-        }
-
-        .token-selector {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .token-amount {
-            font-size: 1.8rem;
-            font-weight: bold;
-            border: none;
-            background: transparent;
-            width: 70%;
-            color: var(--text);
-            outline: none;
-        }
-
-        .token-select {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
-            background: white;
-            border-radius: 20px;
-            cursor: pointer;
-            border: 1px solid var(--border);
-        }
-
-        .switch-tokens {
-            display: flex;
-            justify-content: center;
-            margin: 10px 0;
-        }
-
-        .switch-btn {
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-
-        .slippage-selector {
-            margin: 20px 0;
-        }
-
-        .slippage-title {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .slippage-options {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .slippage-option {
-            padding: 8px 12px;
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            background: white;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
-
-        .slippage-option.active {
-            background: var(--primary);
-            color: white;
-        }
-
-        .price-info {
-            background-color: var(--secondary);
-            border-radius: 12px;
-            padding: 15px;
-            margin: 20px 0;
-            font-size: 0.9rem;
-        }
-
-        .price-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-        }
-
-        .refresh-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 8px 15px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        .swap-btn {
-            width: 100%;
-            padding: 15px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        .swap-btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            border-radius: 8px;
-            color: white;
-            z-index: 1000;
-        }
-
-        .notification.success { background: var(--success); }
-        .notification.error { background: var(--error); }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Uniswap V4 Demo</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      text-align: center;
+    }
+    button {
+      background-color: #0069ff;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 20px;
+    }
+    。error {
+      color: red;
+      margin-top: 20px;
+    }
+    .account {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>DEX聚合交易平台</h1>
-            <div class="wallet-connect" id="walletConnect">
-                <button class="connect-btn" id="connectBtn">
-                    <span>连接钱包</span>
-                </button>
-            </div>
-            <div class="network-selector">
-                <button class="network-btn active" data-chain="1">以太坊</button>
-                <button class="network-btn" data-chain="56">BSC</button>
-            </div>
-        </header>
+  <h1>🔗 Uniswap V4 Demo (GitHub Pages)</h1>
+  <div id="app">
+    <p>🦊 Connect your MetaMask wallet to get started</p>
+    <button id="connectButton">Connect Wallet</button>
+    <div id="accountInfo" class="account" style="display: none;"></div>
+    <div id="error" class="error"></div>
+  </div>
 
-        <div class="swap-container">
-            <div class="token-input">
-                <div class="token-header">
-                    <span class="token-label">从</span>
-                    <span class="balance">余额: <span id="fromBalance">0.0</span></span>
-                </div>
-                
-                <div class="amount-selector">
-                    <div class="amount-options">
-                        <div class="amount-option" data-percentage="25">25%</div>
-                        <div class="amount-option" data-percentage="50">50%</div>
-                        <div class="amount-option" data-percentage="75">75%</div>
-                        <div class="amount-option" data-percentage="100">MAX</div>
-                    </div>
-                </div>
-                
-                <div class="token-selector">
-                    <input type="number" class="token-amount" id="fromAmount" placeholder="0.0" value="0.1" step="0.001">
-                    <div class="token-select" id="fromTokenSelect">
-                        <span class="token-symbol">ETH</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="switch-tokens">
-                <button class="switch-btn" id="switchTokens">⇅</button>
-            </div>
-
-            <div class="token-input">
-                <div class="token-header">
-                    <span class="token-label">到</span>
-                    <span class="balance">余额: <span id="toBalance">0.0</span></span>
-                </div>
-                <div class="token-selector">
-                    <input type="text" class="token-amount" id="toAmount" placeholder="0.0" readonly>
-                    <div class="token-select" id="toTokenSelect">
-                        <span class="token-symbol">USDT</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="slippage-selector">
-                <div class="slippage-title">
-                    <span>滑点容忍度</span>
-                </div>
-                <div class="slippage-options">
-                    <div class="slippage-option active" data-slippage="1">1%</div>
-                    <div class="slippage-option" data-slippage="2">2%</div>
-                    <div class="slippage-option" data-slippage="3">3%</div>
-                </div>
-            </div>
-
-            <div class="price-info">
-                <div class="price-row">
-                    <span>价格</span>
-                    <span id="exchangeRate">1 ETH = 0 USDT</span>
-                </div>
-                <div class="price-row">
-                    <span>预计收到</span>
-                    <span id="expectedAmount">0 USDT</span>
-                </div>
-                <button class="refresh-btn" id="refreshPrice">
-                    <span>刷新价格</span>
-                </button>
-            </div>
-
-            <button class="swap-btn" id="swapButton" disabled>连接钱包后开始交易</button>
-        </div>
-    </div>
-
-    <div class="notification" id="notification" style="display: none;"></div>
-
-    <script>
-        // 状态管理
-        const state = {
-            provider: null,
-            signer: null,
-            walletAddress: '',
-            chainId: '1',
-            fromToken: { symbol: 'ETH', address: '0x0000000000000000000000000000000000000000', decimals: 18, balance: 0 },
-            toToken: { symbol: 'USDT', address: '0xdAC17F958D2ee523a2206206994597C13D831ec7', decimals: 6, balance: 0 },
-            amount: '0.1',
-            slippage: '1'
-        };
-
-        // 初始化
-        async function init() {
-            // 检查是否已安装MetaMask
-            if (typeof window.ethereum !== 'undefined') {
-                await checkWalletConnection();
-            } else {
-                showNotification('请安装MetaMask钱包', 'error');
-                document.getElementById('connectBtn').textContent = '安装MetaMask';
-                document.getElementById('connectBtn').onclick = () => {
-                    window.open('https://metamask.io/download.html', '_blank');
-                };
-            }
-
-            setupEventListeners();
-            await updatePrices();
+  <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const connectButton = document.getElementById('connectButton');
+      const accountInfo = document。getElementById('accountInfo');
+      const errorElement = document.getElementById('error');
+      
+      connectButton。addEventListener('click'， async function() {
+        if (typeof window.ethereum === 'undefined') {
+          showError('Please install MetaMask!');
+          return;
         }
 
-        // 检查钱包连接状态
-        async function checkWalletConnection() {
-            try {
-                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-                if (accounts.length > 0) {
-                    await connectWallet();
-                }
-            } catch (error) {
-                console.error('检查钱包连接失败:', error);
-            }
-        }
+        try {
+          const accounts = await window.ethereum.request({ 
+            method: 'eth_requestAccounts' 
+          });
 
-        // 连接钱包
-        async function connectWallet() {
-            try {
-                // 请求账户访问
-                const accounts = await window.ethereum.request({ 
-                    method: 'eth_requestAccounts' 
-                });
-                
-                // 创建provider和signer
-                state.provider = new ethers.providers.Web3Provider(window.ethereum);
-                state.signer = state.provider.getSigner();
-                state.walletAddress = accounts[0];
-                
-                // 获取网络信息
-                const network = await state.provider.getNetwork();
-                state.chainId = network.chainId.toString();
-                
-                // 更新UI
-                updateWalletUI();
-                await updateBalances();
-                await updatePrices();
-                
-                // 监听账户变化
-                window.ethereum.on('accountsChanged', (accounts) => {
-                    if (accounts.length === 0) {
-                        disconnectWallet();
-                    } else {
-                        state.walletAddress = accounts[0];
-                        updateWalletUI();
-                        updateBalances();
-                    }
-                });
-                
-                // 监听网络变化
-                window.ethereum.on('chainChanged', (chainId) => {
-                    state.chainId = parseInt(chainId).toString();
-                    updateNetworkUI();
-                    updateBalances();
-                    updatePrices();
-                });
-                
-                showNotification('钱包连接成功', 'success');
-                
-            } catch (error) {
-                console.error('钱包连接失败:', error);
-                showNotification('钱包连接失败: ' + error.message, 'error');
-            }
-        }
+          if (accounts。length === 0) {
+            showError('No accounts found');
+            return;
+          }
 
-        // 断开钱包连接
-        function disconnectWallet() {
-            state.provider = null;
-            state.signer = null;
-            state.walletAddress = '';
-            updateWalletUI();
-            showNotification('钱包已断开', 'error');
+          const provider = new ethers.BrowserProvider(window.ethereum);
+          const signer = await provider.getSigner();
+          const address = await signer.getAddress();
+          
+          showAccount(address);
+          hideError();
+          
+          console。log('Connected account:'， address);
+        } catch (err) {
+          console。error('Error connecting wallet:'， err);
+          showError('Failed to connect wallet. Please try again.');
         }
+      });
 
-        // 更新钱包UI
-        function updateWalletUI() {
-            const walletConnect = document.getElementById('walletConnect');
-            if (state.walletAddress) {
-                walletConnect.innerHTML = `
-                    <div class="wallet-info">
-                        <div class="wallet-address">${state.walletAddress.slice(0, 6)}...${state.walletAddress.slice(-4)}</div>
-                        <button class="disconnect-btn" id="disconnectBtn">×</button>
-                    </div>
-                `;
-                document.getElementById('disconnectBtn').onclick = disconnectWallet;
-                document.getElementById('swapButton').disabled = false;
-                document.getElementById('swapButton').textContent = '交换';
-            } else {
-                walletConnect.innerHTML = `
-                    <button class="connect-btn" id="connectBtn">
-                        <span>连接钱包</span>
-                    </button>
-                `;
-                document.getElementById('connectBtn').onclick = connectWallet;
-                document.getElementById('swapButton').disabled = true;
-                document.getElementById('swapButton').textContent = '连接钱包后开始交易';
-            }
-        }
+      function showAccount(address) {
+        accountInfo.textContent = `✅ Connected: ${address.substring(0, 6)}...${address.slice(-4)}`;
+        accountInfo.style.display = 'block';
+        connectButton.style.display = 'none';
+      }
 
-        // 更新网络UI
-        function updateNetworkUI() {
-            document.querySelectorAll('.network-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.chain === state.chainId) {
-                    btn.classList.add('active');
-                }
-            });
-        }
+      function showError(message) {
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
+      }
 
-        // 更新余额
-        async function updateBalances() {
-            if (!state.walletAddress) return;
-            
-            try {
-                // 获取ETH余额
-                const ethBalance = await state.provider.getBalance(state.walletAddress);
-                state.fromToken.balance = parseFloat(ethers.utils.formatEther(ethBalance));
-                document.getElementById('fromBalance').textContent = state.fromToken.balance.toFixed(4);
-                
-                // 获取USDT余额（需要合约交互）
-                if (state.toToken.address !== '0x0000000000000000000000000000000000000000') {
-                    try {
-                        const usdtContract = new ethers.Contract(
-                            state.toToken.address,
-                            ['function balanceOf(address) view returns (uint256)'],
-                            state.provider
-                        );
-                        const usdtBalance = await usdtContract.balanceOf(state.walletAddress);
-                        state.toToken.balance = parseFloat(ethers.utils.formatUnits(usdtBalance, state.toToken.decimals));
-                        document.getElementById('toBalance').textContent = state.toToken.balance.toFixed(2);
-                    } catch (error) {
-                        console.error('获取USDT余额失败:', error);
-                    }
-                }
-            } catch (error) {
-                console.error('更新余额失败:', error);
-            }
-        }
-
-        // 获取价格信息（使用1inch API）
-        async function updatePrices() {
-            try {
-                document.getElementById('swapButton').innerHTML = '<div class="loading"></div> 获取价格...';
-                document.getElementById('swapButton').disabled = true;
-                
-                const fromAmount = document.getElementById('fromAmount').value;
-                if (!fromAmount || parseFloat(fromAmount) <= 0) {
-                    document.getElementById('toAmount').value = '0.0';
-                    document.getElementById('expectedAmount').textContent = '0 USDT';
-                    document.getElementById('exchangeRate').textContent = '1 ETH = 0 USDT';
-                    return;
-                }
-                
-                // 使用1inch API获取报价
-                const amountInWei = ethers.utils.parseEther(fromAmount).toString();
-                
-                const response = await fetch(
-                    `https://api.1inch.io/v5.0/${state.chainId}/quote?` +
-                    `fromTokenAddress=${state.fromToken.address}&` +
-                    `toTokenAddress=${state.toToken.address}&` +
-                    `amount=${amountInWei}`
-                );
-                
-                if (!response.ok) {
-                    throw new Error('API请求失败');
-                }
-                
-                const data = await response.json();
-                
-                // 计算预计收到的金额
-                const expectedAmount = ethers.utils.formatUnits(data.toTokenAmount, state.toToken.decimals);
-                const exchangeRate = parseFloat(expectedAmount) / parseFloat(fromAmount);
-                
-                document.getElementById('toAmount').value = parseFloat(expectedAmount).toFixed(6);
-                document.getElementById('expectedAmount').textContent = `${parseFloat(expectedAmount).toFixed(2)} USDT`;
-                document.getElementById('exchangeRate').textContent = `1 ETH = ${exchangeRate.toFixed(2)} USDT`;
-                
-            } catch (error) {
-                console.error('获取价格失败:', error);
-                document.getElementById('toAmount').value = '0.0';
-                document.getElementById('expectedAmount').textContent = '获取价格失败';
-                document.getElementById('exchangeRate').textContent = '1 ETH = 0 USDT';
-                showNotification('获取价格失败，请重试', 'error');
-            } finally {
-                document.getElementById('swapButton').textContent = '交换';
-                document.getElementById('swapButton').disabled = !state.walletAddress;
-            }
-        }
-
-        // 执行交换交易
-        async function executeSwap() {
-            if (!state.signer) {
-                showNotification('请先连接钱包', 'error');
-                return;
-            }
-            
-            const fromAmount = document.getElementById('fromAmount').value;
-            if (!fromAmount || parseFloat(fromAmount) <= 0) {
-                showNotification('请输入有效的金额', 'error');
-                return;
-            }
-            
-            try {
-                document.getElementById('swapButton').innerHTML = '<div class="loading"></div> 处理中...';
-                document.getElementById('swapButton').disabled = true;
-                
-                // 获取交易数据 from 1inch API
-                const amountInWei = ethers.utils.parseEther(fromAmount).toString();
-                
-                const response = await fetch(
-                    `https://api.1inch.io/v5.0/${state.chainId}/swap?` +
-                    `fromTokenAddress=${state.fromToken.address}&` +
-                    `toTokenAddress=${state.toToken.address}&` +
-                    `amount=${amountInWei}&` +
-                    `fromAddress=${state.walletAddress}&` +
-                    `slippage=${state.slippage}`
-                );
-                
-                if (!response.ok) {
-                    throw new Error('获取交易数据失败');
-                }
-                
-                const data = await response.json();
-                
-                // 发送交易
-                const transaction = await state.signer.sendTransaction({
-                    to: data.tx.to,
-                    data: data.tx.data,
-                    value: data.tx.value,
-                    gasLimit: data.tx.gas,
-                    gasPrice: data.tx.gasPrice
-                });
-                
-                showNotification('交易已发送，等待确认...', 'success');
-                
-                // 等待交易确认
-                const receipt = await transaction.wait();
-                
-                showNotification('交易成功！', 'success');
-                await updateBalances();
-                
-            } catch (error) {
-                console.error('交易失败:', error);
-                showNotification('交易失败: ' + error.message, 'error');
-            } finally {
-                document.getElementById('swapButton').textContent = '交换';
-                document.getElementById('swapButton').disabled = !state.walletAddress;
-            }
-        }
-
-        // 设置事件监听器
-        function setupEventListeners() {
-            // 连接钱包按钮
-            document.getElementById('connectBtn').onclick = connectWallet;
-            
-            // 网络切换
-            document.querySelectorAll('.network-btn').forEach(btn => {
-                btn.onclick = async () => {
-                    if (window。ethereum) {
-                        try {
-                            await window。ethereum。request({
-                                method: 'wallet_switchEthereumChain',
-                                params: [{ chainId: `0x${parseInt(btn.dataset.chain).toString(16)}` }],
-                            });
-                        } catch (error) {
-                            console。error('切换网络失败:'， error);
-                        }
-                    }
-                };
-            });
-            
-            // 金额输入
-            document。getElementById('fromAmount')。addEventListener('input'， () => {
-                state。amount = document。getElementById('fromAmount')。value;
-                updatePrices();
-            });
-            
-            // 金额快捷选择
-            document。querySelectorAll('.amount-option')。forEach(option => {
-                option。onclick = () => {
-                    const percentage = parseFloat(option。dataset。percentage) / 100;
-                    const maxAmount = state.fromToken.balance * percentage;
-                    document.getElementById('fromAmount').value = maxAmount.toFixed(6);
-                    state。amount = maxAmount。toString();
-                    updatePrices();
-                };
-            });
-            
-            // 滑点选择
-            document.querySelectorAll('.slippage-option').forEach(option => {
-                option.onclick = () => {
-                    document。querySelectorAll('.slippage-option')。forEach(opt => {
-                        opt。classList。remove('active');
-                    });
-                    option。classList。add('active');
-                    state。slippage = option。dataset。slippage;
-                };
-            });
-            
-            // 刷新价格
-            document。getElementById('refreshPrice')。onclick = updatePrices;
-            
-            // 交换按钮
-            document。getElementById('swapButton')。onclick = executeSwap;
-            
-            // 代币切换
-            document.getElementById('switchTokens').onclick = () => {
-                [state.fromToken, state.toToken] = [state.toToken, state.fromToken];
-                document。getElementById('fromTokenSelect')。querySelector('.token-symbol')。textContent = state。fromToken.symbol;
-                document。getElementById('toTokenSelect')。querySelector('.token-symbol')。textContent = state。toToken.symbol;
-                updatePrices();
-                updateBalances();
-            };
-        }
-
-        // 显示通知
-        function showNotification(message， 输入) {
-            const notification = document。getElementById('notification');
-            notification.textContent = message;
-            notification.className = `notification ${type}`;
-            notification。style。display = 'block';
-            
-            setTimeout(() => {
-                notification。style。display = 'none';
-            }， 3000);
-        }
-
-        // 初始化应用
-        init();
-    </script>
+      function hideError() {
+        errorElement.style.display = 'none';
+      }
+    });
+  </script>
 </body>
 </html>
