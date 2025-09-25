@@ -686,8 +686,8 @@
                 btn.onclick = async () => {
                     if (window。ethereum) {
                         try {
-                            await window.ethereum.request({
-                                method: 'wallet_switchEthereumChain'，
+                            await window。ethereum。request({
+                                method: 'wallet_switchEthereumChain',
                                 params: [{ chainId: `0x${parseInt(btn.dataset.chain).toString(16)}` }],
                             });
                         } catch (error) {
@@ -704,24 +704,24 @@
             });
             
             // 金额快捷选择
-            document.querySelectorAll('.amount-option').forEach(option => {
+            document。querySelectorAll('.amount-option')。forEach(option => {
                 option。onclick = () => {
-                    const percentage = parseFloat(option.dataset.percentage) / 100;
+                    const percentage = parseFloat(option。dataset。percentage) / 100;
                     const maxAmount = state.fromToken.balance * percentage;
-                    document。getElementById('fromAmount')。value = maxAmount。toFixed(6);
-                    state.amount = maxAmount.toString();
+                    document.getElementById('fromAmount').value = maxAmount.toFixed(6);
+                    state。amount = maxAmount。toString();
                     updatePrices();
                 };
             });
             
             // 滑点选择
-            document。querySelectorAll('.slippage-option')。forEach(option => {
-                option。onclick = () => {
+            document.querySelectorAll('.slippage-option').forEach(option => {
+                option.onclick = () => {
                     document。querySelectorAll('.slippage-option')。forEach(opt => {
                         opt。classList。remove('active');
                     });
-                    option.classList.add('active');
-                    state.slippage = option.dataset.slippage;
+                    option。classList。add('active');
+                    state。slippage = option。dataset。slippage;
                 };
             });
             
@@ -729,12 +729,12 @@
             document。getElementById('refreshPrice')。onclick = updatePrices;
             
             // 交换按钮
-            document.getElementById('swapButton').onclick = executeSwap;
+            document。getElementById('swapButton')。onclick = executeSwap;
             
             // 代币切换
-            document。getElementById('switchTokens')。onclick = () => {
-                [state。fromToken， state.toToken] = [state.toToken, state。fromToken];
-                document。getElementById('fromTokenSelect')。querySelector('.token-symbol')。textContent = state.fromToken.symbol;
+            document.getElementById('switchTokens').onclick = () => {
+                [state.fromToken, state.toToken] = [state.toToken, state.fromToken];
+                document。getElementById('fromTokenSelect')。querySelector('.token-symbol')。textContent = state。fromToken.symbol;
                 document。getElementById('toTokenSelect')。querySelector('.token-symbol')。textContent = state。toToken.symbol;
                 updatePrices();
                 updateBalances();
@@ -743,14 +743,14 @@
 
         // 显示通知
         function showNotification(message， 输入) {
-            const notification = document.getElementById('notification');
+            const notification = document。getElementById('notification');
             notification.textContent = message;
-            notification。className = `notification ${type}`;
+            notification.className = `notification ${type}`;
             notification。style。display = 'block';
             
             setTimeout(() => {
-                notification.style.display = 'none';
-            }, 3000);
+                notification。style。display = 'none';
+            }， 3000);
         }
 
         // 初始化应用
