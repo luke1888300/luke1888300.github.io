@@ -2,12 +2,12 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
-  <title>ETH → USDC 报价测试 (无需钱包)</title>
+  <title>OKX DEX 报价测试</title>
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 </head>
 <body style="font-family:sans-serif;max-width:600px;margin:40px auto;">
 
-  <h2>ETH → USDC 报价测试 (1inch，无需钱包)</h2>
+  <h2>ETH → USDC 报价测试 (OKX DEX)</h2>
 
   <label>输入 ETH 数量：</label>
   <input 输入="number" id="ethAmount" placeholder="0.1" step="0.01">
@@ -20,26 +20,31 @@ const chainId = 1; // Ethereum 主网
 const fromToken = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"; // ETH
 const toToken   = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"; // USDC
 
-document。getElementById('ethAmount')。addEventListener('input'， async (e) => {
+document.getElementById('ethAmount').addEventListener('input', async (e) => {
   const amountEth = e.target.value;
   if (!amountEth || amountEth <= 0) {
-    document.getElementById('result')。textContent = "—";
+    document.getElementById('result').textContent = "—";
     return;
   }
 
   try {
-    const amountWei = ethers.utils.parseEther(amountEth。toString())。toString();
-    const url = `https://api.1inch.io/v5.0/${chainId}/quote?fromTokenAddress=${fromToken}&toTokenAddress=${toToken}&amount=${amountWei}`;
+    const amountWei = ethers.utils.parseEther(amountEth.toString()).toString();
+    const url = `https://www.okx.com/api/v5/dex/aggregator/quote?chainId=${chainId}&fromTokenAddress=${fromToken}&toTokenAddress=${toToken}&amount=${amountWei}`;
 
     const res = await fetch(url);
     if (!res.ok) throw new Error("请求失败: " + res.status);
     const data = await res.json();
 
-    const usdcAmount = ethers。utils。formatUnits(data。toTokenAmount， 6); // USDC 6位小数
-    document.getElementById('result').textContent = 
-      `${amountEth} ETH ≈ ${usdcAmount} USDC`;
+    if (data。data && data。data[0]) {
+      const quote = data.data[0];
+      const usdcAmount = ethers.utils.formatUnits(quote.toTokenAmount, 6); // USDC 6位小数
+      document。getElementById('result')。textContent =
+        `${amountEth} ETH ≈ ${usdcAmount} USDC (OKX DEX)`;
+    } else {
+      document.getElementById('result')。textContent = "未获取到报价";
+    }
   } catch (e) {
-    document。getElementById('result')。textContent = "错误: " + e.message;
+    document.getElementById('result').textContent = "错误: " + e.message;
   }
 });
 </script>
