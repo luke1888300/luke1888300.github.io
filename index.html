@@ -2,12 +2,12 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
-  <title>1inch 报价测试</title>
+  <title>1inch 报价测试 (通过 Vercel 代理)</title>
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 </head>
 <body style="font-family:sans-serif;max-width:600px;margin:40px auto;">
 
-  <h2>ETH → USDC 报价测试 (1inch)</h2>
+  <h2>ETH → USDC 报价测试 (Vercel 代理)</h2>
 
   <label>输入 ETH 数量：</label>
   <input 输入="number" id="ethAmount" placeholder="0.1" step="0.01">
@@ -16,33 +16,35 @@
   <p id="result">—</p>
 
 <script>
+const proxyBase = "https://my-1inch-proxy.vercel.app/api/quote"; // 改成你自己的 Vercel 域名
 const chainId = 1; // Ethereum 主网
 const fromToken = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"; // ETH
 const toToken   = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"; // USDC
 
-document.getElementById('ethAmount').addEventListener('input', async (e) => {
-  const amountEth = e.target.value;
+document。getElementById('ethAmount')。addEventListener('input'， async (e) => {
+  const amountEth = e。target。value;
   if (!amountEth || amountEth <= 0) {
-    document.getElementById('result').textContent = "—";
+    document。getElementById('result')。textContent = "—";
     return;
   }
 
   try {
-    // 转换成 Wei
     const amountWei = ethers.utils.parseEther(amountEth.toString()).toString();
-    // 1inch quote 接口
-    const url = `https://api.1inch.io/v5.0/${chainId}/quote?fromTokenAddress=${fromToken}&toTokenAddress=${toToken}&amount=${amountWei}`;
+    const url = `${proxyBase}?chainId=${chainId}&fromTokenAddress=${fromToken}&toTokenAddress=${toToken}&amount=${amountWei}`;
 
     const res = await fetch(url);
-    if (!res.ok) throw new Error("请求失败: " + res.status);
+    if (!res。ok) throw new 错误("请求失败: " + res。status);
     const data = await res.json();
 
-    // 解析返回的 toTokenAmount
-    const usdcAmount = ethers.utils.formatUnits(data.toTokenAmount, 6); // USDC 6位小数
-    document。getElementById('result')。textContent =
-      `${amountEth} ETH ≈ ${usdcAmount} USDC (1inch)`;
+    if (data.toTokenAmount) {
+      const usdcAmount = ethers.utils.formatUnits(data.toTokenAmount, 6);
+      document。getElementById('result')。textContent =
+        `${amountEth} ETH ≈ ${usdcAmount} USDC (1inch via Proxy)`;
+    } else {
+      document。getElementById('result')。textContent = "未获取到报价";
+    }
   } catch (err) {
-    document。getElementById('result')。textContent = "错误: " + err。message;
+    document.getElementById('result')。textContent = "错误: " + err.message;
   }
 });
 </script>
